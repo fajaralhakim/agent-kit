@@ -1,0 +1,40 @@
+# Dependencies — never commit
+node_modules/
+
+# Bun
+.bun/
+
+# CLI build output (rebuild with: bun run build)
+packages/cli/dist/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Test / scratch projects (local init tests)
+examples/*/node_modules/
+examples/*/.next/
+examples/*/dist/
+/tmp/
+
+# IDE (optional — remove .vscode/ line if team shares settings)
+.idea/
+*.swp
+*.swo
+
+# Coverage
+coverage/

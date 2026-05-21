@@ -1,0 +1,13 @@
+---
+description: Core coding standards for all files in this project
+alwaysApply: true
+---
+
+# Core Standards
+
+- Use strict TypeScript. Avoid `any`.
+- Match existing naming, imports, and folder conventions.
+- Keep changes minimal — one concern per change.
+- Do not commit secrets (`.env`, API keys, tokens).
+- Do not add dependencies without explicit approval.
+- Remove unused imports, dead code, and debug logs before finishing.

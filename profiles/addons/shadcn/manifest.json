@@ -1,0 +1,17 @@
+{
+  "id": "shadcn",
+  "name": "shadcn MCP",
+  "version": "1.0.0",
+  "type": "addon",
+  "requires": [],
+  "conflicts": [],
+  "files": [
+    { "src": ".cursor/skills/ui-shadcn-first/SKILL.md", "dest": ".cursor/skills/ui-shadcn-first/SKILL.md" }
+  ],
+  "mcpServers": {
+    "shadcn": {
+      "url": "https://www.shadcn.io/api/mcp",
+      "headers": {}
+    }
+  }
+}

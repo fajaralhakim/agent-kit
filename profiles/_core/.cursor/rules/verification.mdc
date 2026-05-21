@@ -1,0 +1,14 @@
+---
+description: Verify changes before marking work complete
+alwaysApply: true
+---
+
+# Verification
+
+Before claiming a task is done:
+
+1. Run the project's dev/lint/typecheck commands when applicable.
+2. Confirm the change works for the described scenario.
+3. Do not assert success without evidence from command output or inspection.
+
+Use `{{devCommand}}` for local dev verification when relevant.

@@ -1,0 +1,27 @@
+---
+description: After completing a feature, add a short doc in .agents/docs/features/
+alwaysApply: false
+---
+
+# Feature Documentation
+
+After a **feature** is substantially complete, add one markdown file in `.agents/docs/features/`.
+
+- Filename: kebab-case, e.g. `checkout-flow.md`
+
+## Template
+
+```markdown
+# Feature title
+
+## Summary
+What was added or changed.
+
+## Code areas
+- Routes / pages: …
+- Main components / files: …
+
+## Verification
+1. {{devCommand}}
+2. Manual steps: …
+```

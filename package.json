@@ -1,0 +1,10 @@
+{
+  "name": "agent-kit",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "bun run --filter @agent-kit/cli build",
+    "dev": "bun run packages/cli/src/index.ts",
+    "typecheck": "bun run --filter @agent-kit/cli typecheck"
+  }
+}

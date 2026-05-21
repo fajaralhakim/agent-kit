@@ -1,0 +1,17 @@
+{
+  "id": "vite-react",
+  "name": "Vite + React",
+  "version": "1.0.0",
+  "type": "stack",
+  "detect": {
+    "dependencies": ["vite", "react"],
+    "files": ["vite.config.ts", "vite.config.js"]
+  },
+  "requires": ["_core"],
+  "conflicts": [],
+  "files": [
+    { "src": ".cursor/rules/vite-react.mdc", "dest": ".cursor/rules/vite-react.mdc" },
+    { "src": ".cursor/skills/vite-react-patterns/SKILL.md", "dest": ".cursor/skills/vite-react-patterns/SKILL.md" }
+  ],
+  "mcpRecommendations": ["context7"]
+}

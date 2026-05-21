@@ -1,0 +1,23 @@
+{
+  "id": "nextjs",
+  "name": "Next.js App Router",
+  "version": "1.0.0",
+  "type": "stack",
+  "detect": {
+    "dependencies": ["next"],
+    "files": ["next.config.ts", "next.config.js", "next.config.mjs"]
+  },
+  "requires": ["_core"],
+  "conflicts": [],
+  "template": "nextjs",
+  "scaffoldOnEmpty": true,
+  "files": [
+    { "src": ".cursor/rules/nextjs-app-router.mdc", "dest": ".cursor/rules/nextjs-app-router.mdc" },
+    { "src": ".cursor/rules/nextjs-architecture.mdc", "dest": ".cursor/rules/nextjs-architecture.mdc" },
+    { "src": ".cursor/skills/nextjs-patterns/SKILL.md", "dest": ".cursor/skills/nextjs-patterns/SKILL.md" },
+    { "src": ".agents/naming-conventions.md", "dest": ".agents/naming-conventions.md" },
+    { "src": ".agents/app-types.md", "dest": ".agents/app-types.md" },
+    { "src": "snippets/agents-nextjs.md", "dest": ".agents/snippets/nextjs.md", "merge": "append" }
+  ],
+  "mcpRecommendations": ["context7", "shadcn"]
+}

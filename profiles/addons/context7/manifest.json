@@ -1,0 +1,17 @@
+{
+  "id": "context7",
+  "name": "Context7 MCP",
+  "version": "1.0.0",
+  "type": "addon",
+  "requires": [],
+  "conflicts": [],
+  "files": [],
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "YOUR_CONTEXT7_API_KEY"
+      }
+    }
+  }
+}
