@@ -47,14 +47,6 @@ agent-kit/
 └── docs/
 ```
 
-## Git — what to push
-
-**Push:** source code, `profiles/`, `templates/`, `docs/`, `package.json`, `bun.lock`, `LICENSE`, `README.md`
-
-**Do not push:** `node_modules/`, `packages/cli/dist/` (rebuild with `bun run build`), `.env`, secrets
-
-After clone: `bun install && bun run build`
-
 ## License
 
 MIT
