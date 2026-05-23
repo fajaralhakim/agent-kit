@@ -4,8 +4,8 @@ node_modules/
 # Bun
 .bun/
 
-# CLI build output (rebuild with: bun run build)
-packages/cli/dist/
+# CLI build output — committed for GitHub/npm installs (bunx needs dist without build step)
+# packages/cli/dist/
 
 # Environment & secrets
 .env

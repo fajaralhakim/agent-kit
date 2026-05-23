@@ -26,7 +26,6 @@
   "scripts": {
     "build": "bun run --filter @agent-kit/cli build && bun run --filter @agent-kit/analyzer typecheck",
     "dev": "bun run packages/cli/src/index.ts",
-    "typecheck": "bun run --filter @agent-kit/cli typecheck && bun run --filter @agent-kit/analyzer typecheck",
-    "prepare": "bun run build"
+    "typecheck": "bun run --filter @agent-kit/cli typecheck && bun run --filter @agent-kit/analyzer typecheck"
   }
 }
