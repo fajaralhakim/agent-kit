@@ -1,0 +1,64 @@
+# Install Agent Kit — Claude Code
+
+Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/untitled-projects/refs/heads/main/docs/install/_core-workflow.md) first.
+
+## Claude Code paths
+
+| Artifact | Path |
+|----------|------|
+| Rules (generated) | `.claude/rules/*.md` |
+| Skills (copy templates) | `.claude/skills/{skill-name}/SKILL.md` |
+| MCP | `.mcp.json` or Claude MCP settings |
+| Entry | `CLAUDE.md` → reference `@AGENTS.md` |
+
+## Step-by-step
+
+### 1. Analyze
+
+```bash
+bunx @agent-kit/cli analyze . --json --harness claude-code
+```
+
+### 2. Generate docs + rules
+
+- `AGENTS.md` + `.agents/*` (generated)
+- `.claude/rules/*.md` — same content as Cursor rules, markdown format
+
+### 3. CLAUDE.md
+
+Create or update `CLAUDE.md`:
+
+```markdown
+# Claude Code
+
+Read @AGENTS.md before making changes.
+
+Workflow skills in `.claude/skills/`.
+```
+
+### 4. Copy workflow skills
+
+Copy repo `skills/` → `.claude/skills/`:
+
+- `read-jira-ticket`
+- `create-pull-request`
+- `read-confluence-prd`
+- `using-project-context`
+
+### 5. MCP — Atlassian Rovo
+
+Add remote MCP per Claude Code docs:
+
+```json
+{
+  "mcpServers": {
+    "atlassian-rovo": {
+      "url": "https://mcp.atlassian.com/v1/mcp"
+    }
+  }
+}
+```
+
+### 6. Verify
+
+Core workflow checklist.

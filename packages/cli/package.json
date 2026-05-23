@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@agent-kit/analyzer": "workspace:*",
     "commander": "^13.1.0",
     "handlebars": "^4.7.8"
   },

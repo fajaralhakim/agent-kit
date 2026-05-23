@@ -1,0 +1,8 @@
+{
+  "mcp": {
+    "atlassian-rovo": {
+      "type": "remote",
+      "url": "https://mcp.atlassian.com/v1/mcp"
+    }
+  }
+}

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import { runAnalyze } from "./commands/analyze.js";
 import { runAdd, runDoctor, runInit } from "./commands/index.js";
 
 const program = new Command();
@@ -34,6 +35,21 @@ program
   .option("-f, --force", "Overwrite existing files")
   .action(async (addon: string, targetPath: string, options) => {
     await runAdd(targetPath, addon, { force: options.force });
+  });
+
+program
+  .command("analyze")
+  .description("Analyze project structure and optionally generate tailored agent docs and rules")
+  .argument("[path]", "Target directory", ".")
+  .option("--json", "Output ProjectProfile as JSON")
+  .option("-w, --write", "Write generated AGENTS.md, .agents/, and rules to disk")
+  .option("-H, --harness <name>", "Target harness: cursor, opencode, claude-code, antigravity, copilot", "cursor")
+  .action(async (targetPath: string, options) => {
+    await runAnalyze(targetPath, {
+      json: options.json,
+      write: options.write,
+      harness: options.harness,
+    });
   });
 
 program
