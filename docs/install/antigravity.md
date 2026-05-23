@@ -1,6 +1,6 @@
 # Install Agent Kit — Antigravity
 
-Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/untitled-projects/refs/heads/main/docs/install/_core-workflow.md) first.
+Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/agent-kit/refs/heads/main/docs/install/_core-workflow.md) first.
 
 ## Antigravity paths
 

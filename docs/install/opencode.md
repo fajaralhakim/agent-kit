@@ -1,6 +1,6 @@
 # Install Agent Kit — OpenCode
 
-Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/untitled-projects/refs/heads/main/docs/install/_core-workflow.md) first.
+Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/agent-kit/refs/heads/main/docs/install/_core-workflow.md) first.
 
 ## OpenCode-specific paths
 
@@ -16,7 +16,7 @@ Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/unti
 ### 1. Analyze
 
 ```bash
-bunx @agent-kit/cli analyze . --json --harness opencode
+bunx @fajaralhakim/agent-kit analyze . --json --harness opencode
 ```
 
 ### 2. Generate docs + rules
@@ -57,10 +57,10 @@ For skill discovery without copying to each project, add to OpenCode config:
 
 ```json
 {
-  "plugin": ["agent-kit@git+https://github.com/fajaralhakim/untitled-projects.git"]
+  "plugin": ["agent-kit@git+https://github.com/fajaralhakim/agent-kit.git"]
 }
 ```
 
 Primary install remains: fetch this doc from project root → analyze → bootstrap files.
 
-See [`.opencode/plugins/agent-kit.js`](https://github.com/fajaralhakim/untitled-projects/blob/main/.opencode/plugins/agent-kit.js) in repo.
+See [`.opencode/plugins/agent-kit.js`](https://github.com/fajaralhakim/agent-kit/blob/main/.opencode/plugins/agent-kit.js) in repo.

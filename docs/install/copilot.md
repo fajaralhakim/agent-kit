@@ -1,6 +1,6 @@
 # Install Agent Kit — GitHub Copilot
 
-Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/untitled-projects/refs/heads/main/docs/install/_core-workflow.md) first.
+Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/agent-kit/refs/heads/main/docs/install/_core-workflow.md) first.
 
 ## Copilot paths
 
@@ -13,7 +13,7 @@ Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/unti
 
 ## Steps
 
-1. Analyze: `bunx @agent-kit/cli analyze . --json --harness copilot`
+1. Analyze: `bunx @fajaralhakim/agent-kit analyze . --json --harness copilot`
 2. Generate `AGENTS.md`, `.agents/*`, merge rules into `.github/copilot-instructions.md`
 3. Copy workflow skills → `.github/skills/`
 4. Add Atlassian Rovo via `/mcp add` or MCP JSON with OAuth URL

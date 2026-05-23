@@ -56,19 +56,19 @@ No CLI install required. Paste **one prompt** in your agent chat from the **proj
 #### Cursor
 
 ```
-Fetch and follow instructions from https://raw.githubusercontent.com/fajaralhakim/untitled-projects/refs/heads/main/docs/install/cursor.md
+Fetch and follow instructions from https://raw.githubusercontent.com/fajaralhakim/agent-kit/refs/heads/main/docs/install/cursor.md
 ```
 
 #### OpenCode
 
 ```
-Fetch and follow instructions from https://raw.githubusercontent.com/fajaralhakim/untitled-projects/refs/heads/main/docs/install/opencode.md
+Fetch and follow instructions from https://raw.githubusercontent.com/fajaralhakim/agent-kit/refs/heads/main/docs/install/opencode.md
 ```
 
 #### Claude Code
 
 ```
-Fetch and follow instructions from https://raw.githubusercontent.com/fajaralhakim/untitled-projects/refs/heads/main/docs/install/claude-code.md
+Fetch and follow instructions from https://raw.githubusercontent.com/fajaralhakim/agent-kit/refs/heads/main/docs/install/claude-code.md
 ```
 
 #### Other harnesses
@@ -78,7 +78,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/fajaralhaki
 | Antigravity | `Fetch and follow instructions from …/docs/install/antigravity.md` |
 | GitHub Copilot | `Fetch and follow instructions from …/docs/install/copilot.md` |
 
-Base URL: `https://raw.githubusercontent.com/fajaralhakim/untitled-projects/refs/heads/main`
+Base URL: `https://raw.githubusercontent.com/fajaralhakim/agent-kit/refs/heads/main`
 
 Full list: [docs/install/README.md](docs/install/README.md)
 
@@ -94,30 +94,44 @@ Full list: [docs/install/README.md](docs/install/README.md)
 
 ---
 
-### B. New project (via CLI)
+### B. Via CLI (GitHub or npm)
 
-For an **empty** directory where you want a Next.js starter + agent context:
+**From GitHub** (no npm publish needed — push latest `agent-kit` repo first):
 
 ```bash
-# After npm publish:
-bunx @agent-kit/cli init ./my-app --profile nextjs
+# GitHub username is fajaralhakim (not fjaralhakim)
+bunx github:fajaralhakim/agent-kit analyze . --json
+bunx github:fajaralhakim/agent-kit analyze . --write --harness cursor
+```
+
+**After npm publish:**
+
+```bash
+bunx @fajaralhakim/agent-kit init ./my-app --profile nextjs
+bunx @fajaralhakim/agent-kit analyze . --json
+```
+
+For an **empty** directory with Next.js starter + agent context:
+
+```bash
+bunx @fajaralhakim/agent-kit init ./my-app --profile nextjs
 
 cd my-app
 npm install
 npm run dev
 ```
 
-For an **existing** project, the CLI installs agent context only (does not overwrite app code):
+For an **existing** project, CLI installs agent context only (does not overwrite app code):
 
 ```bash
-bunx @agent-kit/cli init . --profile nextjs
+bunx @fajaralhakim/agent-kit init . --profile nextjs
 ```
 
-Or generate docs and rules directly from the analyzer:
+Generate docs and rules directly:
 
 ```bash
-bunx @agent-kit/cli analyze . --json                          # view scan output
-bunx @agent-kit/cli analyze . --write --harness cursor        # write files to disk
+bunx @fajaralhakim/agent-kit analyze . --json                          # view scan output
+bunx @fajaralhakim/agent-kit analyze . --write --harness cursor        # write files to disk
 ```
 
 ---
@@ -136,7 +150,7 @@ bunx @agent-kit/cli analyze . --write --harness cursor        # write files to d
 
 3. **Verify**
    ```bash
-   bunx @agent-kit/cli doctor
+   bunx @fajaralhakim/agent-kit doctor
    ```
 
 4. **Commit to repo**
@@ -164,8 +178,8 @@ bunx @agent-kit/cli analyze . --write --harness cursor        # write files to d
 Clone this repo to work on Agent Kit itself:
 
 ```bash
-git clone https://github.com/fajaralhakim/untitled-projects.git
-cd untitled-projects
+git clone https://github.com/fajaralhakim/agent-kit.git
+cd agent-kit
 bun install
 bun run build
 ```

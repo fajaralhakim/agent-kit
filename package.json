@@ -1,10 +1,32 @@
 {
-  "name": "agent-kit",
-  "private": true,
+  "name": "@fajaralhakim/agent-kit",
+  "version": "0.1.0",
+  "description": "Install agent context and scaffold projects with Agent Kit profiles",
+  "type": "module",
+  "bin": {
+    "agent-kit": "./bin/agent-kit.js"
+  },
+  "files": [
+    "bin",
+    "packages/cli/dist",
+    "packages/cli/src",
+    "packages/analyzer/src",
+    "profiles",
+    "templates",
+    "skills",
+    "harness",
+    "docs/install"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fajaralhakim/agent-kit.git"
+  },
+  "license": "MIT",
   "workspaces": ["packages/*"],
   "scripts": {
     "build": "bun run --filter @agent-kit/cli build && bun run --filter @agent-kit/analyzer typecheck",
     "dev": "bun run packages/cli/src/index.ts",
-    "typecheck": "bun run --filter @agent-kit/cli typecheck && bun run --filter @agent-kit/analyzer typecheck"
+    "typecheck": "bun run --filter @agent-kit/cli typecheck && bun run --filter @agent-kit/analyzer typecheck",
+    "prepare": "bun run build"
   }
 }

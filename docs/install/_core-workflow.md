@@ -16,7 +16,7 @@ Do **not** assume folder layout. Scan the project root:
 **Preferred:** run CLI if available:
 
 ```bash
-bunx @agent-kit/cli analyze . --json
+bunx @fajaralhakim/agent-kit analyze . --json
 ```
 
 **Fallback:** manual scan using checklist above.

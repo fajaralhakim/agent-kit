@@ -4,9 +4,26 @@ import { fileURLToPath } from "node:url";
 
 const CLI_SRC_DIR = path.dirname(fileURLToPath(import.meta.url));
 
-/** Repo root: agent-kit/ (contains profiles/, templates/) */
+/** Repo / package root (contains profiles/, templates/) */
 export function getKitRoot(): string {
-  return path.resolve(CLI_SRC_DIR, "../../..");
+  if (process.env.AGENT_KIT_ROOT) {
+    return process.env.AGENT_KIT_ROOT;
+  }
+
+  const fromCli = path.resolve(CLI_SRC_DIR, "../../..");
+  if (fs.existsSync(path.join(fromCli, "profiles"))) {
+    return fromCli;
+  }
+
+  let dir = CLI_SRC_DIR;
+  for (let i = 0; i < 8; i++) {
+    if (fs.existsSync(path.join(dir, "profiles"))) {
+      return dir;
+    }
+    dir = path.dirname(dir);
+  }
+
+  return fromCli;
 }
 
 export function getProfilesDir(): string {

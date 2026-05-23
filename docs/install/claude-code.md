@@ -1,6 +1,6 @@
 # Install Agent Kit — Claude Code
 
-Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/untitled-projects/refs/heads/main/docs/install/_core-workflow.md) first.
+Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/agent-kit/refs/heads/main/docs/install/_core-workflow.md) first.
 
 ## Claude Code paths
 
@@ -16,7 +16,7 @@ Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/unti
 ### 1. Analyze
 
 ```bash
-bunx @agent-kit/cli analyze . --json --harness claude-code
+bunx @fajaralhakim/agent-kit analyze . --json --harness claude-code
 ```
 
 ### 2. Generate docs + rules

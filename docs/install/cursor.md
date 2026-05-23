@@ -1,6 +1,6 @@
 # Install Agent Kit — Cursor
 
-Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/untitled-projects/refs/heads/main/docs/install/_core-workflow.md) first.
+Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/agent-kit/refs/heads/main/docs/install/_core-workflow.md) first.
 
 ## Cursor-specific paths
 
@@ -17,7 +17,7 @@ Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/unti
 ### 1. Analyze
 
 ```bash
-bunx @agent-kit/cli analyze . --json
+bunx @fajaralhakim/agent-kit analyze . --json
 ```
 
 Or manual scan per core workflow.
@@ -46,7 +46,7 @@ Globs MUST match this project's actual directories.
 
 ### 3. Copy workflow skills
 
-Copy from Agent Kit repo [`skills/`](https://github.com/fajaralhakim/untitled-projects/tree/main/skills):
+Copy from Agent Kit repo [`skills/`](https://github.com/fajaralhakim/agent-kit/tree/main/skills):
 
 | Skill | Dest |
 |-------|------|
