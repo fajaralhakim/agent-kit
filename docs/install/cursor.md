@@ -28,11 +28,11 @@ Write to project root:
 
 - `AGENTS.md` + `.agents/*.md` (generated from scan)
 - `.cursor/rules/core-standards.mdc`
-- `.cursor/rules/project-architecture.mdc` — globs from detected paths
-- `.cursor/rules/stack-rules.mdc` — only if Next.js/Vite detected
+- `.cursor/rules/project-architecture.mdc` — globs from detected layer paths
+- `.cursor/rules/stack-rules.mdc` — when a known stack is detected (Next.js, Vite, Express, Nest, FastAPI, Django, Expo, RN, Flutter, Go, Rust)
 - `.cursor/rules/verification.mdc`
 
-Rule frontmatter example:
+Rule frontmatter example (Next.js project):
 
 ```yaml
 ---
@@ -42,7 +42,17 @@ alwaysApply: false
 ---
 ```
 
-Globs MUST match this project's actual directories.
+Rule frontmatter example (Express backend):
+
+```yaml
+---
+description: Enforce this project's architecture
+globs: src/routes/**/*,src/controllers/**/*,src/services/**/*
+alwaysApply: false
+---
+```
+
+Globs MUST match this project's actual detected layers.
 
 ### 3. Copy workflow skills
 
@@ -55,7 +65,7 @@ Copy from Agent Kit repo [`skills/`](https://github.com/fajaralhakim/agent-kit/t
 | `read-confluence-prd` | `.cursor/skills/read-confluence-prd/SKILL.md` |
 | `using-project-context` | `.cursor/skills/using-project-context/SKILL.md` |
 
-### 4. MCP — Atlassian Rovo
+### 4. MCP — Atlassian + Figma + Context7
 
 Create `.cursor/mcp.json.example`:
 
@@ -65,12 +75,19 @@ Create `.cursor/mcp.json.example`:
     "atlassian-rovo": {
       "command": "npx",
       "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/mcp"]
+    },
+    "figma": {
+      "command": "npx",
+      "args": ["-y", "figma-developer-mcp", "--figma-api-key=YOUR_FIGMA_TOKEN"]
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp"
     }
   }
 }
 ```
 
-User copies to `.cursor/mcp.json` and completes OAuth on first connect.
+User copies to `.cursor/mcp.json`, completes Atlassian OAuth on first connect, and replaces `YOUR_FIGMA_TOKEN` with a Figma personal access token (or removes Figma if unused).
 
 Add to `.gitignore`:
 

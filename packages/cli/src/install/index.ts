@@ -10,7 +10,6 @@ import type {
   ProfileManifest,
 } from "../types.js";
 import { getProfileDir } from "../registry/index.js";
-import { getTemplatesDir } from "../paths.js";
 
 const LOCK_FILE = ".agent-kit.lock.json";
 const AGENT_KIT_SECTION = "## Agent Kit";
@@ -43,30 +42,6 @@ function upsertGitignore(targetDir: string, line: string): void {
   if (existing.split("\n").some((l) => l.trim() === line)) return;
   const separator = existing.length > 0 && !existing.endsWith("\n") ? "\n" : "";
   fs.writeFileSync(gitignorePath, `${existing}${separator}${line}\n`);
-}
-
-function copyDirRecursive(src: string, dest: string, variables: Record<string, string>): void {
-  if (!fs.existsSync(src)) return;
-  fs.mkdirSync(dest, { recursive: true });
-
-  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-
-    if (entry.isDirectory()) {
-      copyDirRecursive(srcPath, destPath, variables);
-      continue;
-    }
-
-    ensureDir(destPath);
-    let content = fs.readFileSync(srcPath, "utf-8");
-    if (entry.name.endsWith(".hbs") || srcPath.includes(".hbs.")) {
-      content = renderTemplate(content, variables);
-    } else if (entry.name.endsWith(".md") || entry.name.endsWith(".mdc") || entry.name.endsWith(".json")) {
-      content = renderTemplate(content, variables);
-    }
-    fs.writeFileSync(destPath, content);
-  }
 }
 
 function mergeAppend(destPath: string, content: string, profileId: string): void {
@@ -132,15 +107,6 @@ function installProfileFile(
   console.log(`  + ${file.dest}`);
 }
 
-export function scaffoldTemplate(templateName: string, targetDir: string, variables: Record<string, string>): void {
-  const templateDir = path.join(getTemplatesDir(), templateName);
-  if (!fs.existsSync(templateDir)) {
-    throw new Error(`Template not found: ${templateName}`);
-  }
-  console.log(`  scaffolding from templates/${templateName}/`);
-  copyDirRecursive(templateDir, targetDir, variables);
-}
-
 export function mergeMcpServers(
   targetDir: string,
   servers: Record<string, McpServerConfig>,
@@ -163,22 +129,13 @@ export function mergeMcpServers(
 export function installProfiles(
   profiles: ProfileManifest[],
   ctx: InstallContext,
-  options: { force?: boolean; scaffold?: boolean; agentKitVersion?: string } = {},
+  options: { force?: boolean; agentKitVersion?: string } = {},
 ): LockFile {
   const lockEntries: LockFileEntry[] = [];
   const profileIds = profiles.map((p) => p.id);
 
   for (const profile of profiles) {
     console.log(`Installing profile: ${profile.name} (${profile.id})`);
-
-    if (
-      options.scaffold &&
-      profile.scaffoldOnEmpty &&
-      profile.template &&
-      ctx.detected.isEmpty
-    ) {
-      scaffoldTemplate(profile.template, ctx.targetDir, ctx.variables);
-    }
 
     for (const file of profile.files) {
       installProfileFile(profile, file, ctx, lockEntries, options.force ?? false);

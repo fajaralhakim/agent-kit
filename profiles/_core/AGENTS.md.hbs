@@ -1,12 +1,11 @@
 # AGENTS.md
 
-> Agent entry point. Read `.agents/AGENTS.md` and stack-specific guides before making changes.
+> Agent entry point. Read `.agents/` guides before making changes.
 
 **Dev command:** `{{devCommand}}`
 
 ## Core Rules
 
-- Use strict TypeScript. Never introduce `any` unless unavoidable.
 - Follow existing project structure and patterns — infer from codebase, do not invent new ones.
 - Prefer minimal, focused diffs. Do not refactor unrelated code.
 - Never commit secrets, API keys, or credentials.
@@ -14,14 +13,20 @@
 
 ## Project Guides
 
-Read these **only when relevant**:
+For a project-tailored map of layers and conventions, run:
+
+```
+bunx github:fajaralhakim/agent-kit analyze . --write
+```
+
+That generates `.agents/architecture.md`, `.agents/code-conventions.md`, and per-layer guides based on your codebase.
+
+Generic references:
 
 | Guide | When to read |
 |-------|--------------|
-| [feature-structure.md](.agents/feature-structure.md) | Creating or reshaping a feature module |
-| [component-structure.md](.agents/component-structure.md) | Adding shared or UI components |
-| [service-structure.md](.agents/service-structure.md) | API / data layer work |
-| [mcp-guide.md](.agents/mcp-guide.md) | Using MCP tools (Context7, shadcn, etc.) |
+| `.agents/mcp-guide.md` | Setting up MCP servers (Atlassian, Figma, Context7) |
+| `.agents/mcp-registry.md` | Available MCP integrations |
 
 ## Shell
 

@@ -1,4 +1,17 @@
-export type { GeneratedFile, Harness, ProjectProfile, Stack } from "./types.js";
+export type {
+  DetectedLayer,
+  GeneratedFile,
+  Harness,
+  Language,
+  LayerRole,
+  ProjectConventions,
+  ProjectProfile,
+  Stack,
+  StackFamily,
+  VerificationCommands,
+} from "./types.js";
+export { LAYER_PATTERNS, LAYER_ROOT_PREFIXES } from "./patterns.js";
+export { MCP_REGISTRY, getMcpServer, type McpServerDefinition } from "./mcp-registry.js";
 export { analyzeProject } from "./scan.js";
 export { generateDocs, mergeAgentsMd } from "./generate-docs.js";
 export { generateRules, generateCopilotInstructions } from "./generate-rules.js";

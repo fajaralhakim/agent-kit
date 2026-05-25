@@ -16,7 +16,7 @@ Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/agen
 1. Analyze project (CLI or manual)
 2. Generate `AGENTS.md`, `.agents/*`, `.agent/rules/*.md` from scan
 3. Copy workflow skills from repo `skills/` → `.agent/skills/`
-4. Configure Atlassian Rovo MCP: `https://mcp.atlassian.com/v1/mcp`
+4. Configure MCPs (Atlassian Rovo, Figma, Context7) — see `.agents/mcp-registry.md` for snippets
 5. Verify core workflow checklist
 
 Rules are **generated** — do not copy from `harness/`.

@@ -7,20 +7,18 @@ const program = new Command();
 
 program
   .name("agent-kit")
-  .description("Install agent context and scaffold projects with Agent Kit profiles")
+  .description("Install agent context (AGENTS.md, rules, skills, MCP) into any codebase")
   .version("0.1.0");
 
 program
   .command("init")
-  .description("Initialize agent context (and scaffold new Next.js projects)")
+  .description("Install Agent Kit core context into an existing project")
   .argument("[path]", "Target directory", ".")
-  .option("-p, --profile <id>", "Stack profile: nextjs, vite-react")
   .option("-a, --addon <id...>", "MCP addons to include", ["context7"])
   .option("-f, --force", "Overwrite existing agent files")
-  .option("--no-feature-docs", "Skip feature-docs rule")
+  .option("--no-feature-docs", "Skip change-docs rule")
   .action(async (targetPath: string, options) => {
     await runInit(targetPath, {
-      profile: options.profile,
       force: options.force,
       noFeatureDocs: !options.featureDocs,
       addons: options.addon,
@@ -29,7 +27,7 @@ program
 
 program
   .command("add")
-  .description("Add a profile addon (shadcn, context7, etc.)")
+  .description("Add a profile addon (context7, etc.)")
   .argument("<addon>", "Addon profile id")
   .argument("[path]", "Target directory", ".")
   .option("-f, --force", "Overwrite existing files")

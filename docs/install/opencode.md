@@ -40,6 +40,14 @@ Copy from repo `skills/` → `.opencode/skills/`:
     "atlassian-rovo": {
       "type": "remote",
       "url": "https://mcp.atlassian.com/v1/mcp"
+    },
+    "figma": {
+      "type": "local",
+      "command": ["npx", "-y", "figma-developer-mcp", "--figma-api-key=YOUR_FIGMA_TOKEN"]
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp"
     }
   }
 }

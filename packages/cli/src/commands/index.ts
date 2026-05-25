@@ -6,7 +6,6 @@ import { resolveProfileChain } from "../registry/index.js";
 import type { InstallContext } from "../types.js";
 
 export interface InitOptions {
-  profile?: string;
   force?: boolean;
   noFeatureDocs?: boolean;
   addons?: string[];
@@ -14,38 +13,16 @@ export interface InitOptions {
 
 export async function runInit(targetPath: string, options: InitOptions): Promise<void> {
   const targetDir = path.resolve(targetPath);
-  const exists = fs.existsSync(targetDir);
 
-  if (!exists) {
-    if (!options.profile) {
-      console.error(`Path not found: ${targetDir}`);
-      console.error("Check the path, or pass --profile nextjs to scaffold a new project.");
-      process.exit(1);
-    }
-    fs.mkdirSync(targetDir, { recursive: true });
-  }
-
-  const detected = detectStack(targetDir);
-  const profileId = options.profile ?? detected.stack;
-
-  if (!profileId) {
-    console.error(`Could not detect stack at: ${targetDir}`);
-    if (detected.isEmpty) {
-      console.error("Directory is empty — wrong path? For a new app: init <path> --profile nextjs");
-    } else {
-      console.error("Use --profile nextjs | vite-react");
-    }
+  if (!fs.existsSync(targetDir)) {
+    console.error(`Path not found: ${targetDir}`);
+    console.error("Create the directory first, then run agent-kit init.");
     process.exit(1);
   }
 
+  const detected = detectStack(targetDir);
   const addonIds = options.addons ?? ["context7"];
-  let profileChain = resolveProfileChain(["_core", profileId, ...addonIds]);
-
-  const shouldScaffold = detected.isEmpty && profileId === "nextjs";
-
-  if (detected.isExisting) {
-    console.log("Existing project detected — installing agent context only (no scaffold).");
-  }
+  let profileChain = resolveProfileChain(["_core", ...addonIds]);
 
   if (options.noFeatureDocs) {
     profileChain = profileChain.map((manifest) => {
@@ -63,29 +40,23 @@ export async function runInit(targetPath: string, options: InitOptions): Promise
     variables: {
       packageManager: detected.packageManager,
       devCommand: detected.devCommand,
-      profile: profileId,
+      profile: detected.stack ?? "unknown",
     },
   };
 
   console.log(`\nAgent Kit init → ${targetDir}`);
-  console.log(`Profile: ${profileId}${detected.isExisting ? " (existing project)" : " (new project)"}\n`);
+  console.log(`Detected stack: ${detected.stack ?? "unknown"}\n`);
 
   installProfiles(profileChain, ctx, {
     force: options.force,
-    scaffold: !detected.isExisting || detected.isEmpty,
     agentKitVersion: "0.1.0",
   });
 
   console.log("\nDone!");
   console.log("Next steps:");
-  if (shouldScaffold && !detected.isExisting) {
-    console.log(`  1. cd ${path.basename(targetDir)} && npm install`);
-    console.log(`  2. Edit .cursor/mcp.json — replace YOUR_* with your API keys`);
-    console.log(`  3. ${detected.devCommand}`);
-  } else {
-    console.log("  1. Edit .cursor/mcp.json — replace YOUR_* with your API keys");
-    console.log(`  2. Run ${detected.devCommand} to verify`);
-  }
+  console.log("  1. Run agent-kit analyze . --write to generate project-tailored docs and rules.");
+  console.log("  2. Edit .cursor/mcp.json — replace YOUR_* with your API keys.");
+  console.log(`  3. Run ${detected.devCommand} to verify the project still works.`);
 }
 
 export interface AddOptions {
@@ -114,7 +85,7 @@ export async function runAdd(targetPath: string, addonId: string, options: AddOp
   };
 
   console.log(`\nAgent Kit add → ${addonId}\n`);
-  installProfiles(profileChain, ctx, { force: options.force, scaffold: false });
+  installProfiles(profileChain, ctx, { force: options.force });
   console.log("\nDone!");
 }
 
@@ -139,13 +110,19 @@ export async function runDoctor(targetPath: string): Promise<number> {
     if (!exists) exitCode = 1;
   }
 
+  const archFile = path.join(targetDir, ".agents/architecture.md");
+  if (fs.existsSync(archFile)) {
+    console.log("✓ .agents/architecture.md");
+  } else {
+    console.log("⚠ .agents/architecture.md missing — run agent-kit analyze . --write");
+  }
+
   const rulesDir = path.join(targetDir, ".cursor/rules");
   if (fs.existsSync(rulesDir)) {
     const rules = fs.readdirSync(rulesDir).filter((f) => f.endsWith(".mdc"));
     console.log(`✓ .cursor/rules/ (${rules.length} rules)`);
   } else {
-    console.log("✗ .cursor/rules/ missing");
-    exitCode = 1;
+    console.log("⚠ .cursor/rules/ missing — run agent-kit analyze . --write --harness cursor");
   }
 
   const mcpPath = path.join(targetDir, ".cursor/mcp.json");
@@ -157,7 +134,7 @@ export async function runDoctor(targetPath: string): Promise<number> {
       console.log("✓ .cursor/mcp.json configured");
     }
   } else {
-    console.log("⚠ .cursor/mcp.json missing — run agent-kit add context7");
+    console.log("⚠ .cursor/mcp.json missing — see .agents/mcp-registry.md");
   }
 
   const gitignore = path.join(targetDir, ".gitignore");

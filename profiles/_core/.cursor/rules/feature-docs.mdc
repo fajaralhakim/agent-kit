@@ -1,25 +1,25 @@
 ---
-description: After completing a feature, add a short doc in .agents/docs/features/
+description: After completing a substantial change, add a short doc in .agents/docs/
 alwaysApply: false
 ---
 
-# Feature Documentation
+# Change Documentation
 
-After a **feature** is substantially complete, add one markdown file in `.agents/docs/features/`.
+After a substantial change is complete, add one markdown file in `.agents/docs/`.
 
-- Filename: kebab-case, e.g. `checkout-flow.md`
+- Filename: kebab-case, e.g. `checkout-flow.md` or `payment-handler.md`
 
 ## Template
 
 ```markdown
-# Feature title
+# Change title
 
 ## Summary
 What was added or changed.
 
 ## Code areas
-- Routes / pages: …
-- Main components / files: …
+- Layers / paths touched: …
+- Main files: …
 
 ## Verification
 1. {{devCommand}}

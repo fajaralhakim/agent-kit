@@ -1,7 +1,7 @@
 {
   "id": "_core",
   "name": "Agent Kit Core",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "stack",
   "requires": [],
   "conflicts": [],
@@ -15,11 +15,8 @@
     { "src": ".cursor/rules/feature-docs.mdc", "dest": ".cursor/rules/feature-docs.mdc" },
     { "src": ".cursor/skills/using-project-context/SKILL.md", "dest": ".cursor/skills/using-project-context/SKILL.md" },
     { "src": ".cursor/skills/stack-docs-lookup/SKILL.md", "dest": ".cursor/skills/stack-docs-lookup/SKILL.md" },
-    { "src": ".agents/feature-structure.md", "dest": ".agents/feature-structure.md" },
-    { "src": ".agents/component-structure.md", "dest": ".agents/component-structure.md" },
-    { "src": ".agents/service-structure.md", "dest": ".agents/service-structure.md" },
     { "src": ".agents/mcp-guide.md", "dest": ".agents/mcp-guide.md" },
-    { "src": ".agents/docs/features/.gitkeep", "dest": ".agents/docs/features/.gitkeep" }
+    { "src": ".agents/docs/.gitkeep", "dest": ".agents/docs/.gitkeep" }
   ],
   "mcpRecommendations": ["context7"]
 }

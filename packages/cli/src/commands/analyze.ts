@@ -66,8 +66,8 @@ export async function runAnalyze(targetPath: string, options: AnalyzeOptions): P
   }
 
   console.log(`\nProject: ${profile.name}`);
-  console.log(`Stack: ${profile.stack}`);
-  console.log(`Features: ${profile.paths.features.length}`);
-  console.log(`Services: ${profile.paths.services.length}`);
+  console.log(`Stack: ${profile.stack} (${profile.stackFamily})`);
+  console.log(`Language: ${profile.language}`);
+  console.log(`Layers: ${profile.layers.length === 0 ? "(none detected)" : profile.layers.map((l) => `${l.label} → ${l.path}`).join(", ")}`);
   console.log(`\nRun with --write to generate files, or --json for full output.`);
 }

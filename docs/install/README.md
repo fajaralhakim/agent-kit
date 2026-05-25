@@ -18,18 +18,18 @@ Install Agent Kit into **any existing project** by pasting one prompt in your ag
 
 | Output | Method |
 |--------|--------|
-| `AGENTS.md`, `.agents/*` | **Generated** from codebase scan |
-| Rules (`.cursor/rules/`, etc.) | **Generated** — globs and paths match your project |
-| Workflow skills (Jira, PR, Confluence) | **Copied** from templates |
-| MCP Atlassian Rovo | **Copied** placeholder |
+| `AGENTS.md`, `.agents/architecture.md`, `.agents/code-conventions.md`, `.agents/layers/*.md` | **Generated** from codebase scan |
+| Rules (`.cursor/rules/`, `.claude/rules/`, etc.) | **Generated** — globs and paths match your project |
+| Workflow skills (Jira, PR, Confluence, project context) | **Copied** from templates |
+| MCP placeholders (Atlassian Rovo, Figma, Context7) | **Copied** placeholder |
+
+Stack-agnostic: works for frontend (Next.js, Vite), backend (Express, Nest, FastAPI, Django, Go, Rust), and mobile (Expo, React Native, Flutter).
 
 ## CLI alternative
 
-If `bunx @fajaralhakim/agent-kit` is available:
-
 ```bash
-bunx bunx @fajaralhakim/agent-kit analyze . --json
-bunx bunx @fajaralhakim/agent-kit analyze . --write --harness cursor
+bunx github:fajaralhakim/agent-kit analyze . --json
+bunx github:fajaralhakim/agent-kit analyze . --write --harness cursor
 ```
 
 ## Shared workflow

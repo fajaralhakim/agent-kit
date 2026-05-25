@@ -9,8 +9,6 @@ export interface ProfileManifest {
   };
   requires?: string[];
   conflicts?: string[];
-  template?: string;
-  scaffoldOnEmpty?: boolean;
   files: ProfileFile[];
   mcpRecommendations?: string[];
   mcpServers?: Record<string, McpServerConfig>;

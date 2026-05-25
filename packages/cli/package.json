@@ -1,7 +1,7 @@
 {
   "name": "@agent-kit/cli",
   "version": "0.1.0",
-  "description": "Install agent context and scaffold projects with Agent Kit profiles",
+  "description": "Stack-agnostic AI agent context installer CLI",
   "type": "module",
   "bin": {
     "agent-kit": "./dist/index.js"

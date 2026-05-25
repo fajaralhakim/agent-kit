@@ -1,8 +1,8 @@
 # Agent Kit
 
-A toolkit for setting up **AI agent context** in your project — so Cursor, Claude Code, OpenCode, and other agents understand your codebase structure, coding standards, and team workflows (Jira, PRs, Confluence).
+A **stack-agnostic** toolkit for setting up AI agent context in any codebase — frontend, backend, or mobile — so Cursor, Claude Code, OpenCode, and other agents understand your project's structure, conventions, and team workflows.
 
-Agent Kit is **not** an app framework. It **prepares guide files** (`AGENTS.md`, rules, skills, MCP) that AI reads while coding.
+Agent Kit is not an app framework. It generates the guide files (`AGENTS.md`, layer docs, rules, MCP placeholders) that AI reads before it starts coding.
 
 ---
 
@@ -11,14 +11,14 @@ Agent Kit is **not** an app framework. It **prepares guide files** (`AGENTS.md`,
 When using AI coding assistants, agents often:
 
 - Put files in the wrong places (inconsistent folder structure)
-- Miss project conventions (naming, feature/service architecture)
+- Miss project conventions (naming, layering, language idioms)
 - Repeat MCP and workflow setup from scratch on every project
 
-**Agent Kit fixes this** by:
+Agent Kit fixes this by:
 
-1. **Analyzing** your existing codebase structure
-2. **Generating** documentation and rules **tailored to your project** (not generic templates)
-3. **Copying** workflow skills (Jira, PRs, Confluence) and MCP placeholders
+1. **Analyzing** your existing codebase — works for Next.js, Vite, Express, Nest, FastAPI, Django, Expo, React Native, Flutter, Go, Rust, and more
+2. **Generating** documentation and rules tailored to your project (not generic templates)
+3. **Copying** workflow skills (Jira, PRs, Confluence) and MCP placeholders (Atlassian Rovo, Figma, Context7)
 
 The result: the agent has an accurate map of your project before it starts coding.
 
@@ -28,30 +28,44 @@ The result: the agent has an accurate map of your project before it starts codin
 
 | Feature | Description |
 |---------|-------------|
-| **Analyze codebase** | Scan `features/`, `services/`, `components/`, routes, naming conventions, stack (Next.js, Vite, etc.) |
-| **Generate AGENTS.md** | Agent entry point — stack, dev command, actual folder map |
-| **Generate structure guides** | `.agents/feature-structure.md`, `service-structure.md`, etc. from structure **that actually exists** |
-| **Generate rules** | Rules in `.cursor/rules/` (or other harness paths) with globs and paths **specific to your project** |
-| **Workflow skills** | Jira ticket, create PR, read Confluence PRD — copied from templates, same across projects |
-| **MCP Atlassian Rovo** | Placeholder for Jira & Confluence via MCP |
-| **Scaffold new projects** | (Optional) Slim Next.js starter + agent context in one step |
+| **Universal codebase scan** | Detects stack, language, and layered structure via a pattern registry (modules, UI, data-layer, routes, handlers, screens, navigation, shared, config) |
+| **Generate AGENTS.md** | Agent entry point — stack, dev/test commands, the detected layer map |
+| **Generate architecture guides** | `.agents/architecture.md`, `.agents/code-conventions.md`, one file per detected layer under `.agents/layers/` |
+| **Generate rules** | Rules in `.cursor/rules/` (or other harness paths) with globs matching your project's actual layers |
+| **Stack-family rules** | Tailored guidance for Next.js, Vite, Express, Fastify, Nest, FastAPI, Django, Expo, React Native, Flutter, Go, Rust |
+| **Workflow skills** | Jira ticket, create PR, read Confluence PRD, using project context — copied from templates |
+| **MCP registry** | Atlassian Rovo, Figma, Context7 — extensible via `mcp/registry.json` |
 
 ### Generated vs copied
 
 | Output | Method |
 |--------|--------|
 | `AGENTS.md`, `.agents/*`, **rules** | **Generated** — adapts to your project structure |
-| Workflow skills, MCP placeholder | **Copied** — universal templates |
+| Workflow skills, MCP placeholders | **Copied** — universal templates |
+
+---
+
+## Supported stacks
+
+| Family | Stack | Detection signal |
+|--------|-------|------------------|
+| frontend-web | Vite + React | `vite` and `react` deps |
+| fullstack | Next.js | `next` dep |
+| mobile | Expo, React Native, Flutter | `expo`/`react-native` deps; `pubspec.yaml` |
+| backend | Express, Fastify, NestJS | matching deps |
+| backend | FastAPI, Django | `pyproject.toml` / `manage.py` |
+| backend | Go, Rust | `go.mod` / `Cargo.toml` |
+| unknown | — | falls back to a flat-layout note in `architecture.md` |
 
 ---
 
 ## Installation
 
-There are **two ways** to install, depending on your situation:
+There are two ways to install, depending on your situation.
 
 ### A. Existing project (recommended)
 
-No CLI install required. Paste **one prompt** in your agent chat from the **project root**:
+No CLI install required. Paste one prompt in your agent chat from the project root.
 
 #### Cursor
 
@@ -82,80 +96,75 @@ Base URL: `https://raw.githubusercontent.com/fajaralhakim/agent-kit/refs/heads/m
 
 Full list: [docs/install/README.md](docs/install/README.md)
 
-**What happens after you paste the prompt:**
+What happens after you paste the prompt:
 
-1. The agent fetches the install instructions
-2. The agent analyzes your codebase structure
-3. The agent generates `AGENTS.md`, `.agents/*`, and rules
-4. The agent copies workflow skills + MCP placeholder
-5. You fill in MCP credentials (Atlassian OAuth, etc.)
+1. The agent fetches the install instructions.
+2. The agent analyzes your codebase (stack, language, layers, naming).
+3. The agent generates `AGENTS.md`, `.agents/architecture.md`, `.agents/code-conventions.md`, per-layer docs, and rules tailored to your project.
+4. The agent copies workflow skills + MCP placeholders (Atlassian, Figma, Context7).
+5. You fill in credentials (Atlassian OAuth, `FIGMA_API_TOKEN`, etc.).
 
-> Rules are **not** copied from templates — they are always generated from the project scan so globs and paths stay accurate.
+Rules are not copied from templates — they are always generated from the project scan so globs and paths stay accurate.
 
----
+### B. Via CLI (bunx from GitHub)
 
-### B. Via CLI (GitHub or npm)
-
-**From GitHub** (no npm publish needed — push latest `agent-kit` repo first):
+Analyze any existing project and generate tailored docs + rules:
 
 ```bash
-# GitHub username is fajaralhakim (not fjaralhakim)
-bunx github:fajaralhakim/agent-kit analyze . --json
-bunx github:fajaralhakim/agent-kit analyze . --write --harness cursor
+bunx github:fajaralhakim/agent-kit analyze . --json                  # view scan output
+bunx github:fajaralhakim/agent-kit analyze . --write --harness cursor # write files to disk
 ```
 
-**After npm publish:**
+Install the core context layer (`AGENTS.md.hbs`, generic rules, `using-project-context` skill) into an existing project:
 
 ```bash
-bunx @fajaralhakim/agent-kit init ./my-app --profile nextjs
-bunx @fajaralhakim/agent-kit analyze . --json
+bunx github:fajaralhakim/agent-kit init .
 ```
 
-For an **empty** directory with Next.js starter + agent context:
-
-```bash
-bunx @fajaralhakim/agent-kit init ./my-app --profile nextjs
-
-cd my-app
-npm install
-npm run dev
-```
-
-For an **existing** project, CLI installs agent context only (does not overwrite app code):
-
-```bash
-bunx @fajaralhakim/agent-kit init . --profile nextjs
-```
-
-Generate docs and rules directly:
-
-```bash
-bunx @fajaralhakim/agent-kit analyze . --json                          # view scan output
-bunx @fajaralhakim/agent-kit analyze . --write --harness cursor        # write files to disk
-```
+After `init`, run `analyze --write` to overwrite the generic `AGENTS.md` with one tailored to your project's detected layers.
 
 ---
 
 ## After installation
 
-1. **Review generated files**
-   - `AGENTS.md` — read first; confirm the folder map matches your project
-   - `.agents/` — feature, service, and component structure guides
+1. Review generated files
+   - `AGENTS.md` — read first; confirm the layer map matches your project
+   - `.agents/architecture.md` — layer responsibilities
+   - `.agents/code-conventions.md` — naming, path alias, entry pattern
+   - `.agents/layers/*.md` — one per detected layer
    - `.cursor/rules/` (or your harness path) — generated rules
 
-2. **Set up MCP**
-   - Copy `.cursor/mcp.json.example` → `.cursor/mcp.json` (Cursor)
+2. Set up MCP
+   - Copy `.cursor/mcp.json.example` → `.cursor/mcp.json` (Cursor) or equivalent for your harness
    - Complete Atlassian Rovo OAuth on first connect
-   - Fill placeholders in `.agents/atlassian.md` (Jira project key, Confluence spaceId)
+   - Replace `YOUR_FIGMA_TOKEN` with a Figma personal access token (or remove if unused)
+   - Fill placeholders in `.agents/atlassian.md` and `.agents/figma.md`
 
-3. **Verify**
+3. Verify
+
    ```bash
-   bunx @fajaralhakim/agent-kit doctor
+   bunx github:fajaralhakim/agent-kit doctor
    ```
 
-4. **Commit to repo**
-   - Commit: `AGENTS.md`, `.agents/`, `.cursor/rules/`, `.cursor/mcp.json.example`, skills
+4. Commit to repo
+   - Commit: `AGENTS.md`, `.agents/`, harness rules folder, MCP example, skills
    - Do not commit: `.cursor/mcp.json` (secrets) — add it to `.gitignore`
+
+---
+
+## MCP Registry
+
+Agent Kit ships with a registry of recommended MCP servers. The generated `.agents/mcp-registry.md` lists ready-to-merge snippets for your harness.
+
+| Server | What it provides | Endpoint / package |
+|--------|------------------|--------------------|
+| Atlassian Rovo | Jira + Confluence | `https://mcp.atlassian.com/v1/mcp` (OAuth) |
+| Figma | Design context, components, assets | `npx figma-developer-mcp` (`FIGMA_API_TOKEN`) |
+| Context7 | Library + framework documentation | `https://mcp.context7.com/mcp` |
+
+Source of truth: [`mcp/registry.json`](mcp/registry.json). Add your own MCPs there — the analyzer picks them up automatically.
+
+> Workflow skills for Figma (component generation from designs) and Confluence (PRD → tasks) are on the roadmap — they layer on top of the MCP integrations above.
 
 ---
 
@@ -163,11 +172,9 @@ bunx @fajaralhakim/agent-kit analyze . --write --harness cursor        # write f
 
 | Command | Purpose |
 |---------|---------|
-| `agent-kit init [path]` | New project: scaffold + context. Existing project: context only |
-| `agent-kit init --profile nextjs` | Slim Next.js starter + agent context |
-| `agent-kit analyze . --json` | Scan project → JSON output (ProjectProfile) |
-| `agent-kit analyze . --write --harness cursor` | Generate and write AGENTS.md, `.agents/`, rules |
-| `agent-kit add shadcn` | Add shadcn skill + MCP entry |
+| `agent-kit init [path]` | Install core context (generic `AGENTS.md`, rules, skills, MCP placeholders) |
+| `agent-kit analyze . --json` | Scan project → JSON output (`ProjectProfile`) |
+| `agent-kit analyze . --write --harness cursor` | Generate and write project-tailored `AGENTS.md`, `.agents/`, rules |
 | `agent-kit add context7` | Add Context7 MCP entry |
 | `agent-kit doctor` | Validate installation |
 
@@ -187,8 +194,9 @@ bun run build
 Run the CLI locally:
 
 ```bash
-bun run dev -- init ./my-app --profile nextjs
-bun run dev -- analyze templates/nextjs --json
+bun run dev -- analyze /path/to/any/project --json
+bun run dev -- analyze /path/to/any/project --write --harness cursor
+bun run dev -- doctor /path/to/any/project
 ```
 
 ---
@@ -198,13 +206,16 @@ bun run dev -- analyze templates/nextjs --json
 ```
 agent-kit/
 ├── docs/install/       # Install prompts per harness (Cursor, OpenCode, etc.)
+├── mcp/
+│   └── registry.json   # MCP server registry (source of truth)
 ├── packages/
 │   ├── cli/            # @agent-kit/cli
 │   └── analyzer/       # Scan codebase + generate docs/rules
-├── harness/            # MCP examples per harness (no rules)
-├── skills/             # Workflow skill templates (Jira, PR, Confluence)
-├── profiles/           # CLI profiles (legacy init)
-└── templates/nextjs/   # Slim Next.js starter
+├── harness/            # MCP examples per harness (no rule templates)
+├── skills/             # Workflow skill templates (Jira, PR, Confluence, project context)
+└── profiles/
+    ├── _core/          # Generic AGENTS.md + core rules + skills
+    └── addons/         # Optional MCP addons (context7, ...)
 ```
 
 ---

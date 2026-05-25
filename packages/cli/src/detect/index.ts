@@ -13,7 +13,20 @@ function isDirectoryEmpty(dir: string): boolean {
 function readPackageJson(dir: string): Record<string, unknown> | null {
   const pkgPath = path.join(dir, "package.json");
   if (!fs.existsSync(pkgPath)) return null;
-  return JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as Record<string, unknown>;
+  try {
+    return JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function readTextFile(filePath: string): string {
+  if (!fs.existsSync(filePath)) return "";
+  try {
+    return fs.readFileSync(filePath, "utf-8");
+  } catch {
+    return "";
+  }
 }
 
 function hasDependency(pkg: Record<string, unknown>, name: string): boolean {
@@ -37,7 +50,12 @@ function detectPackageManager(dir: string): DetectedStack["packageManager"] {
   return "npm";
 }
 
-function devCommand(pm: DetectedStack["packageManager"]): string {
+function devCommand(pm: DetectedStack["packageManager"], stack: string | null): string {
+  if (stack === "django") return "python manage.py runserver";
+  if (stack === "fastapi") return "uvicorn main:app --reload";
+  if (stack === "go") return "go run ./...";
+  if (stack === "rust") return "cargo run";
+  if (stack === "flutter") return "flutter run";
   switch (pm) {
     case "bun":
       return "bun run dev";
@@ -50,59 +68,50 @@ function devCommand(pm: DetectedStack["packageManager"]): string {
   }
 }
 
+function detectStackName(dir: string, pkg: Record<string, unknown> | null): string | null {
+  if (pkg) {
+    if (hasDependency(pkg, "next")) return "nextjs";
+    if (hasDependency(pkg, "expo")) return "expo";
+    if (hasDependency(pkg, "react-native")) return "react-native";
+    if (hasDependency(pkg, "@nestjs/core")) return "nest";
+    if (hasDependency(pkg, "fastify")) return "fastify";
+    if (hasDependency(pkg, "express")) return "express";
+    if (hasDependency(pkg, "vite") && hasDependency(pkg, "react")) return "vite-react";
+  }
+
+  if (hasFile(dir, ["pubspec.yaml"])) return "flutter";
+  if (hasFile(dir, ["Cargo.toml"])) return "rust";
+  if (hasFile(dir, ["go.mod"])) return "go";
+
+  const pyproject = readTextFile(path.join(dir, "pyproject.toml"));
+  if (hasFile(dir, ["manage.py"]) || /django/i.test(pyproject)) return "django";
+  if (/fastapi/i.test(pyproject)) return "fastapi";
+  if (hasFile(dir, ["pyproject.toml", "requirements.txt"])) return "fastapi";
+
+  return null;
+}
+
 export function detectStack(targetDir: string): DetectedStack {
   const empty = isDirectoryEmpty(targetDir);
   const pkg = readPackageJson(targetDir);
   const pm = detectPackageManager(targetDir);
 
-  if (empty || !pkg) {
+  if (empty) {
     return {
       stack: null,
       packageManager: pm,
-      devCommand: devCommand(pm),
-      isEmpty: empty,
+      devCommand: devCommand(pm, null),
+      isEmpty: true,
       isExisting: false,
     };
   }
 
-  const hasAppDir =
-    fs.existsSync(path.join(targetDir, "src/app")) ||
-    fs.existsSync(path.join(targetDir, "app"));
-
-  if (hasDependency(pkg, "next")) {
-    return {
-      stack: "nextjs",
-      packageManager: pm,
-      devCommand: devCommand(pm),
-      isEmpty: false,
-      isExisting: true,
-    };
-  }
-
-  if (hasDependency(pkg, "vite") && hasDependency(pkg, "react")) {
-    return {
-      stack: "vite-react",
-      packageManager: pm,
-      devCommand: devCommand(pm),
-      isEmpty: false,
-      isExisting: true,
-    };
-  }
-
-  if (hasFile(targetDir, ["manage.py"]) || hasFile(targetDir, ["pyproject.toml"])) {
-    return {
-      stack: "django",
-      packageManager: pm,
-      devCommand: devCommand(pm),
-      isEmpty: false,
-      isExisting: true,
-    };
-  }
+  const stack = detectStackName(targetDir, pkg);
 
   return {
-    stack: null,
+    stack,
     packageManager: pm,
-    devCommand: devCommand(pm),
+    devCommand: devCommand(pm, stack),
     isEmpty: false,
     isExisting: true,
   };

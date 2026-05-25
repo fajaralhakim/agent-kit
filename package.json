@@ -1,7 +1,7 @@
 {
   "name": "@fajaralhakim/agent-kit",
   "version": "0.1.0",
-  "description": "Install agent context and scaffold projects with Agent Kit profiles",
+  "description": "Stack-agnostic AI agent context installer (AGENTS.md, rules, skills, MCP)",
   "type": "module",
   "bin": {
     "agent-kit": "./bin/agent-kit.js"
@@ -12,9 +12,9 @@
     "packages/cli/src",
     "packages/analyzer/src",
     "profiles",
-    "templates",
     "skills",
     "harness",
+    "mcp",
     "docs/install"
   ],
   "repository": {

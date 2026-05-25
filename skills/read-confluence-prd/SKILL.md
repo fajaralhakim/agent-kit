@@ -19,8 +19,8 @@ description: Fetch a Confluence page or PRD via Atlassian Rovo MCP before implem
    - Requirements / acceptance criteria
    - Out of scope
    - Open questions
-4. Read `AGENTS.md` and `.agents/feature-structure.md` (or other guides) before scaffolding
-5. Propose implementation plan aligned with **detected** project structure — do not invent folders
+4. Read `AGENTS.md` and `.agents/architecture.md` (plus relevant `layers/*.md`) before scaffolding
+5. Propose implementation plan aligned with the **detected** project structure — do not invent folders
 
 ## Rules
 

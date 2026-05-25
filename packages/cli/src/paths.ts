@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const CLI_SRC_DIR = path.dirname(fileURLToPath(import.meta.url));
 
-/** Repo / package root (contains profiles/, templates/) */
+/** Repo / package root (contains profiles/) */
 export function getKitRoot(): string {
   if (process.env.AGENT_KIT_ROOT) {
     return process.env.AGENT_KIT_ROOT;
@@ -28,10 +28,6 @@ export function getKitRoot(): string {
 
 export function getProfilesDir(): string {
   return path.join(getKitRoot(), "profiles");
-}
-
-export function getTemplatesDir(): string {
-  return path.join(getKitRoot(), "templates");
 }
 
 export function resolveProfileDir(profileId: string): string {

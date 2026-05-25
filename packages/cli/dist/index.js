@@ -7647,15 +7647,186 @@ var {
 import fs2 from "node:fs";
 import path2 from "node:path";
 
+// ../analyzer/src/patterns.ts
+var LAYER_PATTERNS = [
+  {
+    role: "modules",
+    label: "Modules",
+    candidates: ["features", "modules", "domain", "domains", "apps"]
+  },
+  {
+    role: "ui",
+    label: "UI / Components",
+    candidates: ["components", "ui", "widgets"]
+  },
+  {
+    role: "data-layer",
+    label: "Data layer",
+    candidates: ["services", "repositories", "repository", "api", "clients", "data"]
+  },
+  {
+    role: "routes",
+    label: "Routes",
+    candidates: ["app", "routes", "pages", "router"]
+  },
+  {
+    role: "handlers",
+    label: "Handlers",
+    candidates: ["controllers", "handlers", "resolvers", "views"]
+  },
+  {
+    role: "screens",
+    label: "Screens",
+    candidates: ["screens"]
+  },
+  {
+    role: "navigation",
+    label: "Navigation",
+    candidates: ["navigation"]
+  },
+  {
+    role: "shared",
+    label: "Shared",
+    candidates: ["lib", "utils", "common", "shared", "helpers"]
+  },
+  {
+    role: "config",
+    label: "Config",
+    candidates: ["config", "configs", "settings"]
+  }
+];
+var LAYER_ROOT_PREFIXES = ["src", "app", "internal", ""];
+// ../analyzer/src/mcp-registry.ts
+var MCP_REGISTRY = [
+  {
+    id: "atlassian-rovo",
+    name: "Atlassian Rovo",
+    description: "Official Atlassian MCP for Jira and Confluence (OAuth 2.1 on first connect).",
+    url: "https://mcp.atlassian.com/v1/mcp",
+    docsUrl: "https://www.atlassian.com/platform/mcp",
+    placeholdersDoc: ".agents/atlassian.md",
+    harness: {
+      cursor: {
+        type: "json",
+        key: "mcpServers.atlassian-rovo",
+        config: {
+          command: "npx",
+          args: ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/mcp"]
+        }
+      },
+      opencode: {
+        type: "json",
+        key: "mcp.atlassian-rovo",
+        config: {
+          type: "remote",
+          url: "https://mcp.atlassian.com/v1/mcp"
+        }
+      },
+      "claude-code": {
+        type: "json",
+        key: "mcpServers.atlassian-rovo",
+        config: {
+          url: "https://mcp.atlassian.com/v1/mcp"
+        }
+      }
+    }
+  },
+  {
+    id: "figma",
+    name: "Figma",
+    description: "Design context, components, and assets from Figma files.",
+    docsUrl: "https://developers.figma.com/docs/figma-mcp-server/",
+    placeholdersDoc: ".agents/figma.md",
+    envVars: ["FIGMA_API_TOKEN"],
+    harness: {
+      cursor: {
+        type: "json",
+        key: "mcpServers.figma",
+        config: {
+          command: "npx",
+          args: ["-y", "figma-developer-mcp", "--figma-api-key=YOUR_FIGMA_TOKEN"]
+        }
+      },
+      opencode: {
+        type: "json",
+        key: "mcp.figma",
+        config: {
+          type: "local",
+          command: ["npx", "-y", "figma-developer-mcp", "--figma-api-key=YOUR_FIGMA_TOKEN"]
+        }
+      },
+      "claude-code": {
+        type: "json",
+        key: "mcpServers.figma",
+        config: {
+          command: "npx",
+          args: ["-y", "figma-developer-mcp", "--figma-api-key=YOUR_FIGMA_TOKEN"]
+        }
+      }
+    }
+  },
+  {
+    id: "context7",
+    name: "Context7",
+    description: "Library and framework documentation lookup.",
+    docsUrl: "https://context7.com",
+    harness: {
+      cursor: {
+        type: "json",
+        key: "mcpServers.context7",
+        config: {
+          url: "https://mcp.context7.com/mcp"
+        }
+      },
+      opencode: {
+        type: "json",
+        key: "mcp.context7",
+        config: {
+          type: "remote",
+          url: "https://mcp.context7.com/mcp"
+        }
+      },
+      "claude-code": {
+        type: "json",
+        key: "mcpServers.context7",
+        config: {
+          url: "https://mcp.context7.com/mcp"
+        }
+      }
+    }
+  }
+];
 // ../analyzer/src/scan.ts
 import fs from "node:fs";
 import path from "node:path";
-var IGNORED = new Set([".git", "node_modules", ".next", "dist", "build", ".turbo"]);
+var IGNORED = new Set([
+  ".git",
+  "node_modules",
+  ".next",
+  "dist",
+  "build",
+  ".turbo",
+  ".venv",
+  "venv",
+  "__pycache__",
+  "target",
+  ".cache"
+]);
+var CODE_EXTENSIONS = /\.(tsx?|jsx?|mjs|cjs|py|go|rs|dart|kt|java|swift|rb|php)$/;
 function readJsonFile(filePath) {
   if (!fs.existsSync(filePath))
     return null;
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  } catch {
+    return null;
+  }
+}
+function readTextFile(filePath) {
+  if (!fs.existsSync(filePath))
+    return null;
+  try {
+    return fs.readFileSync(filePath, "utf-8");
   } catch {
     return null;
   }
@@ -7668,19 +7839,48 @@ function detectPackageManager(dir) {
     return "pnpm";
   if (fs.existsSync(path.join(dir, "yarn.lock")))
     return "yarn";
+  if (fs.existsSync(path.join(dir, "package-lock.json")))
+    return "npm";
+  if (fs.existsSync(path.join(dir, "poetry.lock")))
+    return "poetry";
+  if (fs.existsSync(path.join(dir, "uv.lock")))
+    return "uv";
+  if (fs.existsSync(path.join(dir, "requirements.txt")))
+    return "pip";
+  if (fs.existsSync(path.join(dir, "Cargo.lock")))
+    return "cargo";
+  if (fs.existsSync(path.join(dir, "go.sum")))
+    return "go";
+  if (fs.existsSync(path.join(dir, "pubspec.lock")))
+    return "flutter";
   return "npm";
 }
-function devCommand(pm) {
+function runScript(pm, scriptName) {
   switch (pm) {
     case "bun":
-      return "bun run dev";
+      return `bun run ${scriptName}`;
     case "pnpm":
-      return "pnpm dev";
+      return `pnpm ${scriptName}`;
     case "yarn":
-      return "yarn dev";
+      return `yarn ${scriptName}`;
+    case "npm":
+      return `npm run ${scriptName}`;
     default:
-      return "npm run dev";
+      return `${pm} ${scriptName}`;
   }
+}
+function defaultDevCommand(pm, stack) {
+  if (stack === "django")
+    return "python manage.py runserver";
+  if (stack === "fastapi")
+    return "uvicorn main:app --reload";
+  if (stack === "go")
+    return "go run ./...";
+  if (stack === "rust")
+    return "cargo run";
+  if (stack === "flutter")
+    return "flutter run";
+  return runScript(pm, "dev");
 }
 function hasDep(pkg, name) {
   const deps = {
@@ -7690,18 +7890,79 @@ function hasDep(pkg, name) {
   return name in deps;
 }
 function detectStack(dir, pkg) {
-  if (!pkg) {
-    if (fs.existsSync(path.join(dir, "manage.py")) || fs.existsSync(path.join(dir, "pyproject.toml"))) {
-      return "django";
-    }
-    return "unknown";
+  if (pkg) {
+    if (hasDep(pkg, "next"))
+      return "nextjs";
+    if (hasDep(pkg, "expo"))
+      return "expo";
+    if (hasDep(pkg, "react-native"))
+      return "react-native";
+    if (hasDep(pkg, "@nestjs/core"))
+      return "nest";
+    if (hasDep(pkg, "fastify"))
+      return "fastify";
+    if (hasDep(pkg, "express"))
+      return "express";
+    if (hasDep(pkg, "vite") && hasDep(pkg, "react"))
+      return "vite-react";
   }
-  if (hasDep(pkg, "next"))
-    return "nextjs";
-  if (hasDep(pkg, "vite") && hasDep(pkg, "react"))
-    return "vite-react";
-  if (fs.existsSync(path.join(dir, "manage.py")) || fs.existsSync(path.join(dir, "pyproject.toml"))) {
+  if (fs.existsSync(path.join(dir, "pubspec.yaml")))
+    return "flutter";
+  if (fs.existsSync(path.join(dir, "Cargo.toml")))
+    return "rust";
+  if (fs.existsSync(path.join(dir, "go.mod")))
+    return "go";
+  const pyproject = readTextFile(path.join(dir, "pyproject.toml")) ?? "";
+  if (fs.existsSync(path.join(dir, "manage.py")) || /django/i.test(pyproject)) {
     return "django";
+  }
+  if (/fastapi/i.test(pyproject))
+    return "fastapi";
+  if (fs.existsSync(path.join(dir, "pyproject.toml")) || fs.existsSync(path.join(dir, "requirements.txt"))) {
+    return "fastapi";
+  }
+  return "unknown";
+}
+function stackFamily(stack, pkg) {
+  switch (stack) {
+    case "nextjs":
+      return "fullstack";
+    case "vite-react":
+      return "frontend-web";
+    case "expo":
+    case "react-native":
+    case "flutter":
+      return "mobile";
+    case "express":
+    case "nest":
+    case "fastify":
+    case "fastapi":
+    case "django":
+    case "go":
+    case "rust":
+      return "backend";
+    default:
+      if (pkg && (hasDep(pkg, "react") || hasDep(pkg, "vue") || hasDep(pkg, "svelte"))) {
+        return "frontend-web";
+      }
+      return "unknown";
+  }
+}
+function detectLanguage(dir, pkg, stack) {
+  if (stack === "go")
+    return "go";
+  if (stack === "rust")
+    return "rust";
+  if (stack === "flutter")
+    return "dart";
+  if (stack === "django" || stack === "fastapi")
+    return "python";
+  if (fs.existsSync(path.join(dir, "tsconfig.json")))
+    return "typescript";
+  if (pkg) {
+    if (hasDep(pkg, "typescript"))
+      return "typescript";
+    return "javascript";
   }
   return "unknown";
 }
@@ -7710,9 +7971,6 @@ function listSubdirs(dir) {
     return [];
   return fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith(".") && !IGNORED.has(e.name)).map((e) => e.name);
 }
-function walkFeatureDirs(base, relPrefix) {
-  return listSubdirs(base).map((name) => `${relPrefix}/${name}`);
-}
 function detectPathAlias(dir) {
   const tsconfig = readJsonFile(path.join(dir, "tsconfig.json"));
   const paths = tsconfig?.compilerOptions?.paths;
@@ -7720,265 +7978,426 @@ function detectPathAlias(dir) {
     return;
   for (const alias of Object.keys(paths)) {
     if (alias.startsWith("@")) {
-      return alias.replace(/\*$/, "*");
+      return alias;
     }
   }
-  return "@/*";
+  return;
 }
 function isKebabCase(name) {
   return /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(name);
 }
+function isSnakeCase(name) {
+  return /^[a-z][a-z0-9]*(_[a-z0-9]+)*$/.test(name);
+}
 function isPascalCase(name) {
-  return /^[A-Z][a-zA-Z0-9]*$/.test(name.replace(/\.(tsx?|jsx?)$/, ""));
+  return /^[A-Z][a-zA-Z0-9]*$/.test(name);
 }
 function inferNaming(names) {
   if (names.length === 0)
     return "kebab-case (default)";
-  const kebab = names.filter(isKebabCase).length;
-  const pascal = names.filter((n) => isPascalCase(n)).length;
-  if (kebab >= pascal)
-    return "kebab-case";
-  if (pascal > kebab)
-    return "PascalCase";
-  return "kebab-case";
+  const stripped = names.map((n) => n.replace(CODE_EXTENSIONS, ""));
+  const kebab = stripped.filter(isKebabCase).length;
+  const snake = stripped.filter(isSnakeCase).length;
+  const pascal = stripped.filter(isPascalCase).length;
+  const counts = [
+    { name: "kebab-case", count: kebab },
+    { name: "snake_case", count: snake },
+    { name: "PascalCase", count: pascal }
+  ];
+  counts.sort((a, b) => b.count - a.count);
+  return counts[0].count === 0 ? "mixed" : counts[0].name;
 }
-function sampleFilenames(dir, limit = 20) {
+function sampleFilenames(dir, limit = 30) {
   const results = [];
-  function walk(d) {
-    if (results.length >= limit || !fs.existsSync(d))
+  function walk(d, depth) {
+    if (results.length >= limit || !fs.existsSync(d) || depth > 4)
       return;
     for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
-      if (IGNORED.has(entry.name))
+      if (IGNORED.has(entry.name) || entry.name.startsWith("."))
         continue;
       const full = path.join(d, entry.name);
-      if (entry.isFile() && /\.(tsx?|jsx?)$/.test(entry.name)) {
+      if (entry.isFile() && CODE_EXTENSIONS.test(entry.name)) {
         results.push(entry.name);
       } else if (entry.isDirectory()) {
-        walk(full);
+        walk(full, depth + 1);
       }
       if (results.length >= limit)
         break;
     }
   }
-  walk(dir);
+  walk(dir, 0);
   return results;
 }
-function detectThinRoutes(appDir, featuresBase) {
-  if (!fs.existsSync(appDir) || !fs.existsSync(featuresBase))
-    return false;
-  function findRouteFiles(dir) {
-    const files = [];
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        files.push(...findRouteFiles(full));
-      } else if (/^page\.(tsx?|jsx?)$/.test(entry.name)) {
-        files.push(full);
+function walkSubpaths(absDir, relDir) {
+  return listSubdirs(absDir).map((name) => `${relDir}/${name}`);
+}
+function detectLayers(dir, srcRoot) {
+  const layers = [];
+  const seen = new Set;
+  const seenRoles = new Set;
+  const prefixes = LAYER_ROOT_PREFIXES.filter((p) => {
+    if (p === "")
+      return true;
+    if (p === srcRoot)
+      return true;
+    return fs.existsSync(path.join(dir, p));
+  });
+  for (const pattern of LAYER_PATTERNS) {
+    for (const prefix of prefixes) {
+      for (const candidate of pattern.candidates) {
+        const relPath = prefix ? `${prefix}/${candidate}` : candidate;
+        const absPath = path.join(dir, relPath);
+        if (seen.has(relPath))
+          continue;
+        if (!fs.existsSync(absPath))
+          continue;
+        if (!fs.statSync(absPath).isDirectory())
+          continue;
+        const layerKey = `${pattern.role}:${prefix}`;
+        if (seenRoles.has(pattern.role) && !seen.has(layerKey)) {}
+        seen.add(relPath);
+        seen.add(layerKey);
+        seenRoles.add(pattern.role);
+        layers.push({
+          role: pattern.role,
+          label: pattern.label,
+          path: relPath,
+          glob: `${relPath}/**/*`,
+          subpaths: walkSubpaths(absPath, relPath)
+        });
       }
     }
-    return files;
   }
-  const routes = findRouteFiles(appDir).slice(0, 5);
-  if (routes.length === 0)
-    return false;
-  let thinCount = 0;
-  for (const route of routes) {
-    const content = fs.readFileSync(route, "utf-8");
-    const lines = content.split(`
-`).filter((l) => l.trim() && !l.trim().startsWith("//"));
-    const importsFeature = /@\/features\/|from ['"].*features\//.test(content);
-    const isShort = lines.length <= 15;
-    if (importsFeature && isShort)
-      thinCount++;
+  return layers;
+}
+function buildVerification(pm, stack, scripts) {
+  const v = {};
+  if (scripts.dev) {
+    v.dev = runScript(pm, "dev");
+  } else if (scripts.start) {
+    v.dev = runScript(pm, "start");
+  } else {
+    v.dev = defaultDevCommand(pm, stack);
   }
-  return thinCount >= Math.ceil(routes.length / 2);
+  if (scripts.lint)
+    v.lint = runScript(pm, "lint");
+  if (scripts.test)
+    v.test = runScript(pm, "test");
+  if (scripts.typecheck)
+    v.typecheck = runScript(pm, "typecheck");
+  else if (scripts["check-types"])
+    v.typecheck = runScript(pm, "check-types");
+  if (scripts.build)
+    v.build = runScript(pm, "build");
+  if (stack === "django") {
+    v.test ??= "python manage.py test";
+  } else if (stack === "fastapi") {
+    v.test ??= "pytest";
+  } else if (stack === "go") {
+    v.test ??= "go test ./...";
+    v.build ??= "go build ./...";
+  } else if (stack === "rust") {
+    v.test ??= "cargo test";
+    v.build ??= "cargo build";
+  } else if (stack === "flutter") {
+    v.test ??= "flutter test";
+    v.build ??= "flutter build";
+  }
+  return v;
+}
+function detectEntryPattern(stack) {
+  switch (stack) {
+    case "nextjs":
+      return "page.tsx / layout.tsx (App Router)";
+    case "expo":
+    case "react-native":
+      return "App.tsx + screens/";
+    case "flutter":
+      return "lib/main.dart";
+    case "express":
+    case "fastify":
+    case "nest":
+      return "src/index.ts or src/main.ts";
+    case "django":
+      return "manage.py + {app}/views.py";
+    case "fastapi":
+      return "main.py";
+    case "go":
+      return "cmd/{name}/main.go";
+    case "rust":
+      return "src/main.rs";
+    default:
+      return;
+  }
 }
 function analyzeProject(targetDir) {
   const dir = path.resolve(targetDir);
   const pkg = readJsonFile(path.join(dir, "package.json"));
   const pm = detectPackageManager(dir);
   const stack = detectStack(dir, pkg);
+  const family = stackFamily(stack, pkg);
+  const language = detectLanguage(dir, pkg, stack);
   const srcRoot = fs.existsSync(path.join(dir, "src")) ? "src" : undefined;
-  const prefix = srcRoot ? `${srcRoot}/` : "";
-  const featuresRel = `${prefix}features`.replace(/\/$/, "");
-  const servicesRel = `${prefix}services`.replace(/\/$/, "");
-  const componentsRel = `${prefix}components`.replace(/\/$/, "");
-  const featuresDir = path.join(dir, featuresRel);
-  const servicesDir = path.join(dir, servicesRel);
-  const componentsDir = path.join(dir, componentsRel);
-  const features = fs.existsSync(featuresDir) ? walkFeatureDirs(featuresDir, featuresRel) : [];
-  const services = fs.existsSync(servicesDir) ? walkFeatureDirs(servicesDir, servicesRel) : [];
-  const componentSubs = {};
-  if (fs.existsSync(componentsDir)) {
-    for (const sub of listSubdirs(componentsDir)) {
-      componentSubs[sub] = true;
-    }
-  }
-  let appDir;
-  let appRouter = false;
-  const appPath = path.join(dir, `${prefix}app`.replace(/\/$/, ""));
-  if (fs.existsSync(appPath)) {
-    appDir = `${prefix}app`.replace(/\/$/, "");
-    appRouter = stack === "nextjs";
-  } else if (fs.existsSync(path.join(dir, "app"))) {
-    appDir = "app";
-    appRouter = stack === "nextjs";
-  }
-  const featureFolderNames = features.map((f) => path.basename(f));
-  const componentFiles = fs.existsSync(componentsDir) ? sampleFilenames(componentsDir) : [];
+  const layers = detectLayers(dir, srcRoot);
   const pathAlias = detectPathAlias(dir);
   const scripts = pkg?.scripts ?? {};
-  const runPrefix = pm === "npm" ? "npm run" : pm;
-  const lintCommand = scripts.lint ? `${runPrefix} lint` : undefined;
-  const typecheckCommand = scripts.typecheck ? `${runPrefix} typecheck` : scripts["check-types"] ? `${runPrefix} check-types` : undefined;
-  const hasThinRoutes = appDir ? detectThinRoutes(path.join(dir, appDir), featuresDir) : false;
-  const profile = {
+  const verification = buildVerification(pm, stack, scripts);
+  let sampleDir;
+  if (layers.length > 0) {
+    sampleDir = path.join(dir, layers[0].path);
+  } else if (srcRoot) {
+    sampleDir = path.join(dir, srcRoot);
+  } else {
+    sampleDir = dir;
+  }
+  const fileSamples = sampleFilenames(sampleDir);
+  const folderSamples = layers.flatMap((l) => l.subpaths.map((s) => path.basename(s)));
+  return {
     name: pkg?.name ?? path.basename(dir),
     stack,
+    stackFamily: family,
+    language,
     packageManager: pm,
-    devCommand: devCommand(pm),
-    paths: {
-      features,
-      services,
-      components: componentSubs,
-      appRouter,
-      appDir,
-      srcRoot
-    },
+    devCommand: verification.dev ?? defaultDevCommand(pm, stack),
+    layers,
     conventions: {
-      featureNaming: inferNaming(featureFolderNames),
-      componentNaming: inferNaming(componentFiles.map((f) => f.replace(/\.(tsx?|jsx?)$/, ""))),
-      hasThinRoutes,
-      pathAlias
+      folderNaming: inferNaming(folderSamples),
+      fileNaming: inferNaming(fileSamples),
+      pathAlias,
+      entryPattern: detectEntryPattern(stack)
     },
-    rules: {},
+    verification,
     hasExistingAgentsMd: fs.existsSync(path.join(dir, "AGENTS.md")),
-    scripts
+    scripts,
+    srcRoot
   };
-  if (features.length > 0)
-    profile.rules.featureGlob = `${featuresRel}/**/*`;
-  if (services.length > 0)
-    profile.rules.serviceGlob = `${servicesRel}/**/*`;
-  if (Object.keys(componentSubs).length > 0 || fs.existsSync(componentsDir)) {
-    profile.rules.componentGlob = `${componentsRel}/**/*`;
-  }
-  if (appDir)
-    profile.rules.appGlob = `${appDir}/**/*`;
-  profile.rules.lintCommand = lintCommand;
-  profile.rules.typecheckCommand = typecheckCommand;
-  return profile;
 }
 // ../analyzer/src/generate-docs.ts
-function featureStructureDoc(profile) {
-  const { featuresRel } = getPathLabels(profile);
-  if (profile.paths.features.length === 0) {
-    return `# Feature Structure
-
-No dedicated \`${featuresRel}/\` folder detected in this project.
-
-When adding page-level UI + logic, follow existing patterns in the codebase. Inspect similar modules before creating new folders. Do not invent parallel structures without matching what already exists.
-`;
+var HARNESS_MCP_PATHS = {
+  cursor: ".cursor/mcp.json",
+  opencode: "opencode.json",
+  "claude-code": ".mcp.json",
+  antigravity: ".agent/mcp.json",
+  copilot: "~/.copilot/mcp-config.json"
+};
+function verificationChecklist(profile) {
+  const lines = [];
+  const v = profile.verification;
+  if (v.dev)
+    lines.push(`- Dev: \`${v.dev}\``);
+  if (v.test)
+    lines.push(`- Test: \`${v.test}\``);
+  if (v.lint)
+    lines.push(`- Lint: \`${v.lint}\``);
+  if (v.typecheck)
+    lines.push(`- Type check: \`${v.typecheck}\``);
+  if (v.build)
+    lines.push(`- Build: \`${v.build}\``);
+  return lines.length > 0 ? lines.join(`
+`) : "- No standard scripts detected — inspect codebase before claiming completion.";
+}
+function layerTable(layers) {
+  if (layers.length === 0) {
+    return "| (flat) | — | No standard layered structure detected — inspect existing files before adding new ones. |";
   }
-  const featureList = profile.paths.features.map((f) => `- \`${f}/\``).join(`
+  return layers.map((l) => {
+    const detected = l.subpaths.length > 0 ? l.subpaths.map((s) => `\`${s.split("/").pop()}\``).join(", ") : "—";
+    return `| ${l.label} | \`${l.path}/\` | ${detected} |`;
+  }).join(`
 `);
-  const thinRouteNote = profile.conventions.hasThinRoutes ? `
-Route files in \`${profile.paths.appDir}/\` stay **thin** — import and render from \`${featuresRel}/\`.` : "";
-  return `# Feature Structure
+}
+function agentsMdContent(profile) {
+  const lintRef = profile.verification.lint ? `, \`${profile.verification.lint}\`` : "";
+  return `# AGENTS.md
 
-## Detected features
+> Agent entry point for **${profile.name}**. Read \`.agents/\` guides before scaffolding or large changes.
 
-${featureList}
+**Stack:** ${profile.stack} (${profile.stackFamily})  
+**Language:** ${profile.language}  
+**Package manager:** ${profile.packageManager}  
+**Dev command:** \`${profile.devCommand}\`
 
-## Layout
+## Project layout (detected)
 
-\`\`\`
-${featuresRel}/{feature-name}/
-├── index.tsx           # Main export (page or section)
-├── components/         # Feature-scoped UI (optional)
-├── hooks/              # Feature-scoped hooks (optional)
-└── sections/           # Page sections (optional)
-\`\`\`
+| Layer | Path | Detected children |
+|-------|------|-------------------|
+${layerTable(profile.layers)}
 
-## Rules
+## Verification
 
-- Feature folder names: **${profile.conventions.featureNaming}**
-- Default export from \`index.tsx\`: PascalCase component name
-- Do not put business logic in route files${thinRouteNote}
+${verificationChecklist(profile)}
+
+## Core rules
+
+- Match existing structure — paths above were scanned from this repo.
+- Prefer minimal, focused diffs.
+- Never commit secrets or API keys.
+- Verify changes before claiming work is complete (\`${profile.devCommand}\`${lintRef}).
+
+## Guides (read when relevant)
+
+| Guide | When |
+|-------|------|
+| [architecture.md](.agents/architecture.md) | Anything that touches layout or layers |
+| [code-conventions.md](.agents/code-conventions.md) | Naming, file organization |
+| [mcp-guide.md](.agents/mcp-guide.md) | MCP setup |
+| [mcp-registry.md](.agents/mcp-registry.md) | Available MCP integrations |
+| [atlassian.md](.agents/atlassian.md) | Jira / Confluence placeholders |
+| [figma.md](.agents/figma.md) | Figma placeholders |
+
+<!-- agent-kit:begin -->
+## Agent Kit
+
+Installed via Agent Kit analyze → generate workflow. Layers, conventions, and rules reflect this project's detected structure.
+<!-- agent-kit:end -->
 `;
 }
-function serviceStructureDoc(profile) {
-  const servicesRel = profile.paths.srcRoot ? `${profile.paths.srcRoot}/services` : "services";
-  if (profile.paths.services.length === 0) {
-    return `# Service Structure
+function architectureDoc(profile) {
+  if (profile.layers.length === 0) {
+    return `# Architecture
 
-No dedicated \`${servicesRel}/\` folder detected.
+No standard layered structure detected. This project uses a flat or custom layout.
 
-For API or data layer work, follow existing patterns (fetch calls, hooks, or lib folders) before introducing a new service layout.
+## Guidance
+
+- Inspect existing modules before adding new folders.
+- Do not invent \`src/features/\`, \`src/services/\`, or other layouts unless the team adopts them explicitly.
+- Follow patterns in neighboring files.
+
+**Entry pattern:** ${profile.conventions.entryPattern ?? "—"}
 `;
   }
-  const serviceList = profile.paths.services.map((s) => `- \`${s}/\``).join(`
+  const layerSections = profile.layers.map((l) => {
+    const children = l.subpaths.length > 0 ? `
+
+Detected children:
+${l.subpaths.map((s) => `- \`${s}/\``).join(`
+`)}` : "";
+    return `### ${l.label} — \`${l.path}/\`
+
+${layerGuidance(l, profile)}${children}`;
+  }).join(`
+
 `);
-  return `# Service Structure
+  return `# Architecture
 
-## Detected service domains
+Stack: **${profile.stack}** (${profile.stackFamily}).  
+Entry pattern: ${profile.conventions.entryPattern ?? "—"}
 
-${serviceList}
+## Layers
 
-## Layout
-
-\`\`\`
-${servicesRel}/{domain}/
-├── keys.ts             # Query keys (if using TanStack Query)
-├── types/              # Domain types
-└── query/              # Query/mutation functions
-\`\`\`
+${layerSections}
 
 ## Rules
 
-- One domain per folder under \`${servicesRel}/\`
-- Keep HTTP client config shared (e.g. \`axios-config.ts\` at services root)
-- Features import from \`@${profile.paths.srcRoot ? "/" : ""}services/{domain}\` — do not duplicate API calls in components
+- Do not create parallel folder structures outside the layers above.
+- New work belongs in an existing layer — extend it rather than introducing a new top-level folder.
+- Follow naming conventions in [code-conventions.md](./code-conventions.md).
 `;
 }
-function componentStructureDoc(profile) {
-  const componentsRel = profile.paths.srcRoot ? `${profile.paths.srcRoot}/components` : "components";
-  const subs = Object.keys(profile.paths.components);
-  if (subs.length === 0 && profile.paths.features.length === 0) {
-    return `# Component Structure
-
-No \`${componentsRel}/\` subfolders detected. Inspect existing component locations before adding new ones.
-`;
+function layerGuidance(layer, profile) {
+  switch (layer.role) {
+    case "modules":
+      return `Domain or feature modules. Each subfolder represents a self-contained unit. ${profile.stackFamily === "frontend-web" || profile.stackFamily === "fullstack" ? "Routes/pages should stay thin and delegate to a module." : "Group related logic and types together within each module."}`;
+    case "ui":
+      return `Reusable UI primitives and shared components. Avoid duplicating components across modules.`;
+    case "data-layer":
+      return `API clients, repositories, or service objects. Keep transport details (HTTP, DB) isolated here; consumers depend on this layer's exported types.`;
+    case "routes":
+      return profile.stack === "nextjs" ? `Next.js App Router. Route files (\`page.tsx\`, \`layout.tsx\`) stay thin; data and rendering logic live in modules or data-layer.` : `HTTP route declarations or app entry points. Delegate to handlers or modules.`;
+    case "handlers":
+      return `Controllers, request handlers, or resolvers. Validate input, call the data layer, return responses. Avoid business logic here.`;
+    case "screens":
+      return `Mobile screens. One folder per screen; navigation wiring lives in the navigation layer.`;
+    case "navigation":
+      return `Navigation/router configuration. Centralize route definitions here.`;
+    case "shared":
+      return `Cross-cutting utilities, helpers, and primitives. Do not put domain logic here.`;
+    case "config":
+      return `Environment and configuration. Read values via a single typed entry point; do not scatter \`process.env\` reads.`;
+    default:
+      return `Detected layer.`;
   }
-  const subList = subs.length > 0 ? subs.map((s) => `- \`${componentsRel}/${s}/\``).join(`
-`) : `- \`${componentsRel}/\` (no subfolders yet)`;
-  return `# Component Structure
-
-## Detected layout
-
-${subList}
-
-## Rules
-
-- **ui/** — design system / shadcn primitives (if present)
-- **shared/** — cross-feature reusable components
-- **Feature-scoped** — \`${profile.paths.srcRoot ?? "src"}/features/{name}/components/\`
-- Component file naming: **${profile.conventions.componentNaming}**
-- Do not duplicate components that already exist in \`shared/\` or \`ui/\`
-`;
 }
-function namingConventionsDoc(profile) {
-  const alias = profile.conventions.pathAlias ?? "@/*";
-  return `# Naming Conventions
+function codeConventionsDoc(profile) {
+  return `# Code Conventions
 
-Detected from existing codebase:
+Inferred from existing codebase. Follow these unless local context dictates otherwise.
 
 | Area | Convention |
 |------|------------|
-| Feature folders | ${profile.conventions.featureNaming} |
-| Component files | ${profile.conventions.componentNaming} |
-| Path alias | \`${alias}\` |
+| Language | ${profile.language} |
+| Folder names | ${profile.conventions.folderNaming} |
+| File names | ${profile.conventions.fileNaming} |
+| Path alias | \`${profile.conventions.pathAlias ?? "—"}\` |
+| Entry pattern | ${profile.conventions.entryPattern ?? "—"} |
 
-Follow patterns in neighboring files. Do not mix naming styles within the same folder.
+## Rules
+
+- Match neighboring files for naming, imports, and structure.
+- Do not mix naming styles within the same folder.
+- When unsure, sample 2–3 similar files in the same layer before writing new code.
+`;
+}
+function mcpGuideDoc(harness) {
+  const configPath = HARNESS_MCP_PATHS[harness];
+  return `# MCP Guide
+
+This project was bootstrapped for **${harness}**.  
+MCP config file: \`${configPath}\`
+
+Agent Kit installs MCP placeholders — edit credentials after install.
+
+## Setup
+
+1. Open \`${configPath}\` (copy from \`${configPath}.example\` if present)
+2. Replace placeholders / complete OAuth on first connect
+3. Restart the agent or reload MCP servers
+
+## Available MCPs
+
+See [mcp-registry.md](./mcp-registry.md) for the full list of integrations available via Agent Kit.
+
+## Config locations by harness
+
+| Harness | MCP config file |
+|---------|-----------------|
+| Cursor | \`.cursor/mcp.json\` |
+| OpenCode | \`opencode.json\` |
+| Claude Code | \`.mcp.json\` |
+| Antigravity | \`.agent/mcp.json\` |
+| Copilot | \`~/.copilot/mcp-config.json\` or repo MCP settings |
+`;
+}
+function mcpRegistryDoc(harness) {
+  const sections = MCP_REGISTRY.map((server) => {
+    const cfg = server.harness[harness];
+    const block = cfg ? `
+\`\`\`json
+${JSON.stringify({ [cfg.key.split(".")[0]]: { [cfg.key.split(".").slice(1).join(".")]: cfg.config } }, null, 2)}
+\`\`\`` : `
+_(No preset for this harness — see docs URL.)_`;
+    const envNote = server.envVars?.length ? `
+**Env vars:** ${server.envVars.map((v) => `\`${v}\``).join(", ")}` : "";
+    const docsNote = server.docsUrl ? `
+**Docs:** ${server.docsUrl}` : "";
+    const placeholdersNote = server.placeholdersDoc ? `
+**Placeholders:** [${server.placeholdersDoc}](${server.placeholdersDoc})` : "";
+    return `## ${server.name} (\`${server.id}\`)
+
+${server.description}${docsNote}${envNote}${placeholdersNote}
+
+### ${harness} config${block}`;
+  }).join(`
+
+---
+
+`);
+  return `# MCP Registry
+
+Available MCP integrations for this project. Merge the snippet below into \`${HARNESS_MCP_PATHS[harness]}\` and replace any placeholder tokens.
+
+${sections}
 `;
 }
 function atlassianDoc() {
@@ -7997,115 +8416,64 @@ Configure after install. Requires Atlassian Rovo MCP (OAuth on first connect).
 
 \`https://mcp.atlassian.com/v1/mcp\`
 
-See \`.agents/mcp-guide.md\` for harness-specific MCP config paths.
+See \`.agents/mcp-guide.md\` for harness-specific config paths.
 `;
 }
-function mcpGuideDoc(harness) {
-  const harnessNote = harness ? `
-This project was bootstrapped for **${harness}**. See harness install doc for MCP file location.
-` : "";
-  return `# MCP Guide
-${harnessNote}
-Agent Kit installs **MCP placeholders** — edit credentials after install.
+function figmaDoc() {
+  return `# Figma Integration
 
-## Atlassian Rovo (recommended)
+Configure after install. Requires the Figma Developer MCP and a personal access token.
 
-Official endpoint: \`https://mcp.atlassian.com/v1/mcp\`
+## Placeholders — fill in for your team
 
-OAuth 2.1 on first connect. See \`.agents/atlassian.md\` for project keys.
+- **Default file key:** \`YOUR_FILE_KEY\` (from any Figma file URL: \`figma.com/file/<KEY>/...\`)
+- **Team ID:** \`YOUR_TEAM_ID\` (optional, for team-wide queries)
+- **API token:** set as env var \`FIGMA_API_TOKEN\` or replace \`YOUR_FIGMA_TOKEN\` in MCP config
 
-## Config locations by harness
+## Docs
 
-| Harness | MCP config file |
-|---------|-----------------|
-| Cursor | \`.cursor/mcp.json\` (gitignore secrets; commit \`.cursor/mcp.json.example\`) |
-| OpenCode | \`opencode.json\` → \`mcp\` |
-| Claude Code | \`.mcp.json\` or Claude MCP settings |
-| Copilot | \`~/.copilot/mcp-config.json\` or repo MCP settings |
+https://developers.figma.com/docs/figma-mcp-server/
 
-## Setup
-
-1. Copy from \`mcp.json.example\` if present
-2. Complete OAuth / replace placeholders
-3. Restart agent or reload MCP servers
+See \`.agents/mcp-guide.md\` for harness-specific config paths.
 `;
 }
-function getPathLabels(profile) {
-  const featuresRel = profile.paths.srcRoot ? `${profile.paths.srcRoot}/features` : "features";
-  return { featuresRel };
-}
-function folderTable(profile) {
-  const rows = [];
-  if (profile.paths.features.length > 0) {
-    rows.push(`| Features | \`${profile.paths.features[0].split("/")[0]}/features/\` | ${profile.paths.features.length} modules |`);
-  }
-  if (profile.paths.services.length > 0) {
-    rows.push(`| Services | \`${profile.paths.services[0].split("/").slice(0, -1).join("/")}/\` | ${profile.paths.services.length} domains |`);
-  }
-  const compSubs = Object.keys(profile.paths.components);
-  if (compSubs.length > 0) {
-    const base = profile.paths.srcRoot ? `${profile.paths.srcRoot}/components` : "components";
-    rows.push(`| Components | \`${base}/\` | ${compSubs.join(", ")} |`);
-  }
-  if (profile.paths.appDir) {
-    rows.push(`| App routes | \`${profile.paths.appDir}/\` | ${profile.stack === "nextjs" ? "Next.js App Router" : "routes"} |`);
-  }
-  if (rows.length === 0) {
-    rows.push("| (flat) | Inspect codebase | No standard feature/service layout detected |");
-  }
-  return rows.join(`
-`);
-}
-function agentsMdContent(profile) {
-  return `# AGENTS.md
-
-> Agent entry point for **${profile.name}**. Read \`.agents/\` guides before scaffolding or large changes.
-
-**Stack:** ${profile.stack}  
-**Dev command:** \`${profile.devCommand}\`
-
-## Project layout (detected)
-
-| Area | Path | Notes |
-|------|------|-------|
-${folderTable(profile)}
-
-## Core rules
-
-- Use strict TypeScript. Avoid \`any\` unless unavoidable.
-- Follow **existing** structure — paths above were scanned from this repo.
-- Prefer minimal, focused diffs.
-- Never commit secrets or API keys.
-- Verify changes before claiming work is complete (\`${profile.devCommand}\`${profile.rules.lintCommand ? `, \`${profile.rules.lintCommand}\`` : ""}).
-
-## Guides (read when relevant)
-
-| Guide | When |
-|-------|------|
-| [feature-structure.md](.agents/feature-structure.md) | Feature modules |
-| [component-structure.md](.agents/component-structure.md) | Shared / UI components |
-| [service-structure.md](.agents/service-structure.md) | API / data layer |
-| [naming-conventions.md](.agents/naming-conventions.md) | Naming questions |
-| [atlassian.md](.agents/atlassian.md) | Jira / Confluence via MCP |
-| [mcp-guide.md](.agents/mcp-guide.md) | MCP setup |
-
-<!-- agent-kit:begin -->
-## Agent Kit
-
-Installed via Agent Kit analyze → generate workflow. Rules in harness folder reflect **this project's** detected paths and conventions.
-<!-- agent-kit:end -->
-`;
-}
-function generateDocs(profile, harness) {
-  return [
+function generateDocs(profile, harness = "cursor") {
+  const files = [
     { path: "AGENTS.md", content: agentsMdContent(profile) },
-    { path: ".agents/feature-structure.md", content: featureStructureDoc(profile) },
-    { path: ".agents/service-structure.md", content: serviceStructureDoc(profile) },
-    { path: ".agents/component-structure.md", content: componentStructureDoc(profile) },
-    { path: ".agents/naming-conventions.md", content: namingConventionsDoc(profile) },
+    { path: ".agents/architecture.md", content: architectureDoc(profile) },
+    { path: ".agents/code-conventions.md", content: codeConventionsDoc(profile) },
+    { path: ".agents/mcp-guide.md", content: mcpGuideDoc(harness) },
+    { path: ".agents/mcp-registry.md", content: mcpRegistryDoc(harness) },
     { path: ".agents/atlassian.md", content: atlassianDoc() },
-    { path: ".agents/mcp-guide.md", content: mcpGuideDoc(harness) }
+    { path: ".agents/figma.md", content: figmaDoc() }
   ];
+  for (const layer of profile.layers) {
+    files.push({
+      path: `.agents/layers/${layer.role}.md`,
+      content: layerDoc(layer, profile)
+    });
+  }
+  return files;
+}
+function layerDoc(layer, profile) {
+  const childrenList = layer.subpaths.length > 0 ? layer.subpaths.map((s) => `- \`${s}/\``).join(`
+`) : "_(none detected — folder exists but is empty)_";
+  return `# ${layer.label}
+
+Path: \`${layer.path}/\`
+
+${layerGuidance(layer, profile)}
+
+## Detected children
+
+${childrenList}
+
+## Rules
+
+- Naming: **${profile.conventions.folderNaming}** for folders, **${profile.conventions.fileNaming}** for files
+- Glob: \`${layer.glob}\`
+- See [architecture.md](../architecture.md) for how this layer interacts with the rest of the project.
+`;
 }
 function mergeAgentsMd(existing, generated) {
   const begin = "<!-- agent-kit:begin -->";
@@ -8164,15 +8532,33 @@ ${body.trim()}
 ${body.trim()}
 `;
 }
+function languageStandards(language) {
+  switch (language) {
+    case "typescript":
+      return "- Use strict TypeScript. Avoid `any` unless unavoidable.";
+    case "javascript":
+      return "- Prefer JSDoc types where the project uses them. Avoid leaving unused variables.";
+    case "python":
+      return "- Use type hints where existing code uses them. Match the project's typing strictness (mypy/pyright).";
+    case "go":
+      return "- Use `gofmt` and idiomatic Go. Handle every error explicitly.";
+    case "rust":
+      return "- Use `cargo fmt` and idiomatic Rust. Prefer `?` for error propagation.";
+    case "dart":
+      return "- Use `dart format`. Follow Effective Dart conventions.";
+    default:
+      return "- Follow the language conventions used by the existing codebase.";
+  }
+}
 function coreStandardsRule(profile, harness) {
-  const alias = profile.conventions.pathAlias ?? "@/*";
+  const alias = profile.conventions.pathAlias ? `
+- Path alias: \`${profile.conventions.pathAlias}\`` : "";
   const body = `# Core Standards
 
-- Use strict TypeScript. Avoid \`any\`.
-- Path alias: \`${alias}\`
+${languageStandards(profile.language)}${alias}
 - Package manager: **${profile.packageManager}**
-- Dev server: \`${profile.devCommand}\`
-- Match existing naming and folder conventions (see \`.agents/naming-conventions.md\`).
+- Dev command: \`${profile.devCommand}\`
+- Match existing naming and folder conventions (see \`.agents/code-conventions.md\`).
 - Keep changes minimal — one concern per change.
 - Do not commit secrets (API keys, tokens, \`.env\`).
 - Do not add dependencies without explicit approval.
@@ -8183,22 +8569,16 @@ function coreStandardsRule(profile, harness) {
   };
 }
 function projectArchitectureRule(profile, harness) {
-  const { features, services, appDir, srcRoot } = profile.paths;
-  const hasStructure = features.length > 0 || services.length > 0;
-  const globs = [
-    profile.rules.featureGlob,
-    profile.rules.serviceGlob,
-    profile.rules.componentGlob,
-    profile.rules.appGlob
-  ].filter((g) => Boolean(g));
-  if (!hasStructure && globs.length === 0) {
+  const globs = profile.layers.map((l) => l.glob);
+  if (profile.layers.length === 0) {
     const body = `# Project Architecture (generated)
 
-No \`features/\` or \`services/\` layout detected. This project uses a flat or custom structure.
+No standard layered structure detected. This project uses a flat or custom layout.
 
 - Inspect existing modules before adding new folders.
-- Do not invent \`src/features/\` or parallel layouts unless the team adopts them explicitly.
+- Do not invent \`src/features/\`, \`src/services/\`, or parallel layouts unless the team adopts them explicitly.
 - Follow patterns in neighboring files.
+- See \`.agents/architecture.md\` for project-specific guidance.
 `;
     return {
       path: `${rulesDir(harness)}/project-architecture.${ruleExt(harness)}`,
@@ -8206,50 +8586,40 @@ No \`features/\` or \`services/\` layout detected. This project uses a flat or c
     };
   }
   const lines = ["# Project Architecture (generated)", ""];
-  if (features.length > 0) {
-    const base = srcRoot ? `${srcRoot}/features` : "features";
-    lines.push(`- **Features** live in \`${base}/{${profile.conventions.featureNaming}}/\``);
-    lines.push(`  Detected: ${features.map((f) => "`" + f + "/`").join(", ")}`);
+  for (const layer of profile.layers) {
+    const subpathList = layer.subpaths.length > 0 ? layer.subpaths.map((s) => "`" + s + "/`").join(", ") : "_(empty)_";
+    lines.push(`- **${layer.label}** → \`${layer.path}/\` — detected: ${subpathList}`);
   }
-  if (services.length > 0) {
-    const base = srcRoot ? `${srcRoot}/services` : "services";
-    lines.push(`- **Services** live in \`${base}/{domain}/\``);
-    lines.push(`  Detected: ${services.map((s) => "`" + s + "/`").join(", ")}`);
-  }
-  const compSubs = Object.keys(profile.paths.components);
-  if (compSubs.length > 0) {
-    const base = srcRoot ? `${srcRoot}/components` : "components";
-    lines.push(`- **Components** → \`${base}/\` subfolders: ${compSubs.join(", ")}`);
-  }
-  if (appDir && profile.conventions.hasThinRoutes) {
-    lines.push(`- **Routes** in \`${appDir}/\` stay thin — delegate to features via path alias`);
-  } else if (appDir) {
-    lines.push(`- **Routes** in \`${appDir}/\` — keep route files focused; avoid heavy business logic inline`);
-  }
-  lines.push("- Do not create parallel folder structures outside paths above.");
-  lines.push("- See `.agents/feature-structure.md` and related guides for details.");
+  lines.push("");
+  lines.push("- Do not create parallel folder structures outside the layers above.");
+  lines.push("- New work belongs in an existing layer.");
+  lines.push("- See `.agents/architecture.md` for responsibilities per layer.");
   return {
     path: `${rulesDir(harness)}/project-architecture.${ruleExt(harness)}`,
-    content: formatRule(harness, "Enforce this project's feature/service architecture", globs.length > 0 ? globs : undefined, false, lines.join(`
+    content: formatRule(harness, "Enforce this project's detected architecture", globs.length > 0 ? globs : undefined, false, lines.join(`
 `))
   };
 }
 function stackRulesRule(profile, harness) {
-  if (profile.stack === "nextjs" && profile.paths.appDir) {
+  const { stack, layers } = profile;
+  const routes = layers.find((l) => l.role === "routes");
+  const handlers = layers.find((l) => l.role === "handlers");
+  const screens = layers.find((l) => l.role === "screens");
+  if (stack === "nextjs" && routes) {
     const body = `# Next.js / App Router
 
-- App Router root: \`${profile.paths.appDir}/\`
-- Route files: \`page.tsx\`, \`layout.tsx\`, \`loading.tsx\` — keep thin when features exist
+- App Router root: \`${routes.path}/\`
+- Route files: \`page.tsx\`, \`layout.tsx\`, \`loading.tsx\` — keep thin when modules exist
 - Use Server Components by default; \`"use client"\` only when needed
-- Data fetching in features or services, not duplicated in every route
+- Data fetching in modules or data layer, not duplicated in every route
 `;
     return {
       path: `${rulesDir(harness)}/stack-rules.${ruleExt(harness)}`,
-      content: formatRule(harness, "Stack-specific rules (Next.js detected)", [profile.rules.appGlob ?? `${profile.paths.appDir}/**/*`], false, body)
+      content: formatRule(harness, "Stack-specific rules (Next.js detected)", [routes.glob], false, body)
     };
   }
-  if (profile.stack === "vite-react") {
-    const src = profile.paths.srcRoot ?? "src";
+  if (stack === "vite-react") {
+    const src = profile.srcRoot ?? "src";
     const body = `# Vite + React
 
 - Entry and routes under \`${src}/\`
@@ -8261,16 +8631,124 @@ function stackRulesRule(profile, harness) {
       content: formatRule(harness, "Stack-specific rules (Vite + React detected)", [`${src}/**/*`], false, body)
     };
   }
+  if (stack === "express" || stack === "fastify") {
+    const globs = [routes?.glob, handlers?.glob].filter((g) => Boolean(g));
+    const body = `# ${stack === "express" ? "Express" : "Fastify"}
+
+- Keep route declarations thin — delegate to handlers/services
+- Validate input at the boundary (handlers); never trust request bodies directly
+- Group related routes by domain under \`${routes?.path ?? "routes/"}\` (if present)
+- Centralize error handling middleware
+`;
+    return {
+      path: `${rulesDir(harness)}/stack-rules.${ruleExt(harness)}`,
+      content: formatRule(harness, `Stack-specific rules (${stack} detected)`, globs.length > 0 ? globs : undefined, false, body)
+    };
+  }
+  if (stack === "nest") {
+    const body = `# NestJS
+
+- Controllers handle routing and validation; services hold business logic; repositories own data access
+- Use DTOs + class-validator for request payloads
+- Inject dependencies via constructor; avoid manual instantiation in handlers
+`;
+    return {
+      path: `${rulesDir(harness)}/stack-rules.${ruleExt(harness)}`,
+      content: formatRule(harness, "Stack-specific rules (NestJS detected)", undefined, false, body)
+    };
+  }
+  if (stack === "django") {
+    const body = `# Django
+
+- One concern per app under \`apps/\` or top-level (models, views, urls, serializers, admin)
+- Use class-based or function-based views consistently — match what's already there
+- Migrations are append-only; never edit a committed migration
+- Settings split: \`settings/base.py\`, \`settings/dev.py\`, etc., if present
+`;
+    return {
+      path: `${rulesDir(harness)}/stack-rules.${ruleExt(harness)}`,
+      content: formatRule(harness, "Stack-specific rules (Django detected)", undefined, false, body)
+    };
+  }
+  if (stack === "fastapi") {
+    const body = `# FastAPI
+
+- Define routers per domain; mount them in the main app
+- Use Pydantic models for request/response validation
+- Keep business logic out of route functions; delegate to services
+- Async-first: use \`async def\` for routes that touch I/O
+`;
+    return {
+      path: `${rulesDir(harness)}/stack-rules.${ruleExt(harness)}`,
+      content: formatRule(harness, "Stack-specific rules (FastAPI detected)", undefined, false, body)
+    };
+  }
+  if (stack === "expo" || stack === "react-native") {
+    const globs = [screens?.glob, layers.find((l) => l.role === "navigation")?.glob].filter((g) => Boolean(g));
+    const body = `# ${stack === "expo" ? "Expo" : "React Native"}
+
+- Screens under \`${screens?.path ?? "screens/"}\` — one folder per screen
+- Navigation centralized (stack/tab navigators) — do not declare routes inline
+- Keep platform-specific code behind \`.ios.tsx\` / \`.android.tsx\` suffixes
+- Use Reanimated/Gesture Handler for animations rather than ad-hoc Animated API
+`;
+    return {
+      path: `${rulesDir(harness)}/stack-rules.${ruleExt(harness)}`,
+      content: formatRule(harness, `Stack-specific rules (${stack} detected)`, globs.length > 0 ? globs : undefined, false, body)
+    };
+  }
+  if (stack === "flutter") {
+    const body = `# Flutter
+
+- Entry: \`lib/main.dart\`
+- Group features under \`lib/features/\` or \`lib/modules/\`
+- Use \`flutter format\` and run \`flutter analyze\` before finishing
+- Prefer composition over deep widget inheritance
+`;
+    return {
+      path: `${rulesDir(harness)}/stack-rules.${ruleExt(harness)}`,
+      content: formatRule(harness, "Stack-specific rules (Flutter detected)", undefined, false, body)
+    };
+  }
+  if (stack === "go") {
+    const body = `# Go
+
+- Layout: \`cmd/{name}/main.go\` for entrypoints; \`internal/\` for private packages; \`pkg/\` for reusable libs
+- Run \`go vet\` and \`go test ./...\` before claiming completion
+- Wrap errors with \`fmt.Errorf("...: %w", err)\` — never swallow
+`;
+    return {
+      path: `${rulesDir(harness)}/stack-rules.${ruleExt(harness)}`,
+      content: formatRule(harness, "Stack-specific rules (Go detected)", undefined, false, body)
+    };
+  }
+  if (stack === "rust") {
+    const body = `# Rust
+
+- Run \`cargo fmt\`, \`cargo clippy\`, and \`cargo test\` before finishing
+- Prefer \`Result<T, E>\` and \`?\` over panics
+- Module structure mirrors directory layout under \`src/\`
+`;
+    return {
+      path: `${rulesDir(harness)}/stack-rules.${ruleExt(harness)}`,
+      content: formatRule(harness, "Stack-specific rules (Rust detected)", undefined, false, body)
+    };
+  }
   return null;
 }
 function verificationRule(profile, harness) {
-  const checks = [`- Run \`${profile.devCommand}\` to verify the app starts`];
-  if (profile.rules.lintCommand) {
-    checks.push(`- Run \`${profile.rules.lintCommand}\` before finishing`);
-  }
-  if (profile.rules.typecheckCommand) {
-    checks.push(`- Run \`${profile.rules.typecheckCommand}\` when types may be affected`);
-  }
+  const v = profile.verification;
+  const checks = [];
+  if (v.dev)
+    checks.push(`- Start the app with \`${v.dev}\` to confirm it runs`);
+  if (v.test)
+    checks.push(`- Run \`${v.test}\` before claiming completion`);
+  if (v.lint)
+    checks.push(`- Run \`${v.lint}\` before finishing`);
+  if (v.typecheck)
+    checks.push(`- Run \`${v.typecheck}\` when types may be affected`);
+  if (v.build)
+    checks.push(`- Run \`${v.build}\` if shipping or before release`);
   checks.push("- Do not claim work is complete without running applicable checks.");
   const body = `# Verification
 
@@ -8287,11 +8765,9 @@ ${checks.join(`
 function generateRules(profile, harness = "cursor") {
   const files = [
     coreStandardsRule(profile, harness),
-    verificationRule(profile, harness)
+    verificationRule(profile, harness),
+    projectArchitectureRule(profile, harness)
   ];
-  const arch = projectArchitectureRule(profile, harness);
-  if (arch)
-    files.push(arch);
   const stack = stackRulesRule(profile, harness);
   if (stack)
     files.push(stack);
@@ -8354,9 +8830,9 @@ Generated ${files.length} files for harness: ${harness}`);
   }
   console.log(`
 Project: ${profile.name}`);
-  console.log(`Stack: ${profile.stack}`);
-  console.log(`Features: ${profile.paths.features.length}`);
-  console.log(`Services: ${profile.paths.services.length}`);
+  console.log(`Stack: ${profile.stack} (${profile.stackFamily})`);
+  console.log(`Language: ${profile.language}`);
+  console.log(`Layers: ${profile.layers.length === 0 ? "(none detected)" : profile.layers.map((l) => `${l.label} → ${l.path}`).join(", ")}`);
   console.log(`
 Run with --write to generate files, or --json for full output.`);
 }
@@ -8379,7 +8855,20 @@ function readPackageJson(dir) {
   const pkgPath = path3.join(dir, "package.json");
   if (!fs3.existsSync(pkgPath))
     return null;
-  return JSON.parse(fs3.readFileSync(pkgPath, "utf-8"));
+  try {
+    return JSON.parse(fs3.readFileSync(pkgPath, "utf-8"));
+  } catch {
+    return null;
+  }
+}
+function readTextFile2(filePath) {
+  if (!fs3.existsSync(filePath))
+    return "";
+  try {
+    return fs3.readFileSync(filePath, "utf-8");
+  } catch {
+    return "";
+  }
 }
 function hasDependency(pkg, name) {
   const deps = {
@@ -8401,7 +8890,17 @@ function detectPackageManager2(dir) {
     return "yarn";
   return "npm";
 }
-function devCommand2(pm) {
+function devCommand(pm, stack) {
+  if (stack === "django")
+    return "python manage.py runserver";
+  if (stack === "fastapi")
+    return "uvicorn main:app --reload";
+  if (stack === "go")
+    return "go run ./...";
+  if (stack === "rust")
+    return "cargo run";
+  if (stack === "flutter")
+    return "flutter run";
   switch (pm) {
     case "bun":
       return "bun run dev";
@@ -8413,51 +8912,56 @@ function devCommand2(pm) {
       return "npm run dev";
   }
 }
+function detectStackName(dir, pkg) {
+  if (pkg) {
+    if (hasDependency(pkg, "next"))
+      return "nextjs";
+    if (hasDependency(pkg, "expo"))
+      return "expo";
+    if (hasDependency(pkg, "react-native"))
+      return "react-native";
+    if (hasDependency(pkg, "@nestjs/core"))
+      return "nest";
+    if (hasDependency(pkg, "fastify"))
+      return "fastify";
+    if (hasDependency(pkg, "express"))
+      return "express";
+    if (hasDependency(pkg, "vite") && hasDependency(pkg, "react"))
+      return "vite-react";
+  }
+  if (hasFile(dir, ["pubspec.yaml"]))
+    return "flutter";
+  if (hasFile(dir, ["Cargo.toml"]))
+    return "rust";
+  if (hasFile(dir, ["go.mod"]))
+    return "go";
+  const pyproject = readTextFile2(path3.join(dir, "pyproject.toml"));
+  if (hasFile(dir, ["manage.py"]) || /django/i.test(pyproject))
+    return "django";
+  if (/fastapi/i.test(pyproject))
+    return "fastapi";
+  if (hasFile(dir, ["pyproject.toml", "requirements.txt"]))
+    return "fastapi";
+  return null;
+}
 function detectStack2(targetDir) {
   const empty = isDirectoryEmpty(targetDir);
   const pkg = readPackageJson(targetDir);
   const pm = detectPackageManager2(targetDir);
-  if (empty || !pkg) {
+  if (empty) {
     return {
       stack: null,
       packageManager: pm,
-      devCommand: devCommand2(pm),
-      isEmpty: empty,
+      devCommand: devCommand(pm, null),
+      isEmpty: true,
       isExisting: false
     };
   }
-  const hasAppDir = fs3.existsSync(path3.join(targetDir, "src/app")) || fs3.existsSync(path3.join(targetDir, "app"));
-  if (hasDependency(pkg, "next")) {
-    return {
-      stack: "nextjs",
-      packageManager: pm,
-      devCommand: devCommand2(pm),
-      isEmpty: false,
-      isExisting: true
-    };
-  }
-  if (hasDependency(pkg, "vite") && hasDependency(pkg, "react")) {
-    return {
-      stack: "vite-react",
-      packageManager: pm,
-      devCommand: devCommand2(pm),
-      isEmpty: false,
-      isExisting: true
-    };
-  }
-  if (hasFile(targetDir, ["manage.py"]) || hasFile(targetDir, ["pyproject.toml"])) {
-    return {
-      stack: "django",
-      packageManager: pm,
-      devCommand: devCommand2(pm),
-      isEmpty: false,
-      isExisting: true
-    };
-  }
+  const stack = detectStackName(targetDir, pkg);
   return {
-    stack: null,
+    stack,
     packageManager: pm,
-    devCommand: devCommand2(pm),
+    devCommand: devCommand(pm, stack),
     isEmpty: false,
     isExisting: true
   };
@@ -8497,9 +9001,6 @@ function getKitRoot() {
 }
 function getProfilesDir() {
   return path4.join(getKitRoot(), "profiles");
-}
-function getTemplatesDir() {
-  return path4.join(getKitRoot(), "templates");
 }
 function resolveProfileDir(profileId) {
   if (profileId.startsWith("_") || profileId.includes("/")) {
@@ -8595,27 +9096,6 @@ function upsertGitignore(targetDir, line) {
   fs6.writeFileSync(gitignorePath, `${existing}${separator}${line}
 `);
 }
-function copyDirRecursive(src, dest, variables) {
-  if (!fs6.existsSync(src))
-    return;
-  fs6.mkdirSync(dest, { recursive: true });
-  for (const entry of fs6.readdirSync(src, { withFileTypes: true })) {
-    const srcPath = path6.join(src, entry.name);
-    const destPath = path6.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      copyDirRecursive(srcPath, destPath, variables);
-      continue;
-    }
-    ensureDir(destPath);
-    let content = fs6.readFileSync(srcPath, "utf-8");
-    if (entry.name.endsWith(".hbs") || srcPath.includes(".hbs.")) {
-      content = renderTemplate(content, variables);
-    } else if (entry.name.endsWith(".md") || entry.name.endsWith(".mdc") || entry.name.endsWith(".json")) {
-      content = renderTemplate(content, variables);
-    }
-    fs6.writeFileSync(destPath, content);
-  }
-}
 function mergeAppend(destPath, content, profileId) {
   const markerBegin = `<!-- agent-kit:begin ${profileId} -->`;
   const markerEnd = `<!-- agent-kit:end ${profileId} -->`;
@@ -8671,14 +9151,6 @@ function installProfileFile(profile, file, ctx, lockEntries, force) {
   });
   console.log(`  + ${file.dest}`);
 }
-function scaffoldTemplate(templateName, targetDir, variables) {
-  const templateDir = path6.join(getTemplatesDir(), templateName);
-  if (!fs6.existsSync(templateDir)) {
-    throw new Error(`Template not found: ${templateName}`);
-  }
-  console.log(`  scaffolding from templates/${templateName}/`);
-  copyDirRecursive(templateDir, targetDir, variables);
-}
 function mergeMcpServers(targetDir, servers) {
   const mcpPath = path6.join(targetDir, ".cursor/mcp.json");
   const examplePath = path6.join(targetDir, ".cursor/mcp.json.example");
@@ -8699,9 +9171,6 @@ function installProfiles(profiles, ctx, options = {}) {
   const profileIds = profiles.map((p) => p.id);
   for (const profile of profiles) {
     console.log(`Installing profile: ${profile.name} (${profile.id})`);
-    if (options.scaffold && profile.scaffoldOnEmpty && profile.template && ctx.detected.isEmpty) {
-      scaffoldTemplate(profile.template, ctx.targetDir, ctx.variables);
-    }
     for (const file of profile.files) {
       installProfileFile(profile, file, ctx, lockEntries, options.force ?? false);
     }
@@ -8732,32 +9201,14 @@ function readProjectLock(targetDir) {
 // src/commands/index.ts
 async function runInit(targetPath, options) {
   const targetDir = path7.resolve(targetPath);
-  const exists = fs7.existsSync(targetDir);
-  if (!exists) {
-    if (!options.profile) {
-      console.error(`Path not found: ${targetDir}`);
-      console.error("Check the path, or pass --profile nextjs to scaffold a new project.");
-      process.exit(1);
-    }
-    fs7.mkdirSync(targetDir, { recursive: true });
-  }
-  const detected = detectStack2(targetDir);
-  const profileId = options.profile ?? detected.stack;
-  if (!profileId) {
-    console.error(`Could not detect stack at: ${targetDir}`);
-    if (detected.isEmpty) {
-      console.error("Directory is empty — wrong path? For a new app: init <path> --profile nextjs");
-    } else {
-      console.error("Use --profile nextjs | vite-react");
-    }
+  if (!fs7.existsSync(targetDir)) {
+    console.error(`Path not found: ${targetDir}`);
+    console.error("Create the directory first, then run agent-kit init.");
     process.exit(1);
   }
+  const detected = detectStack2(targetDir);
   const addonIds = options.addons ?? ["context7"];
-  let profileChain = resolveProfileChain(["_core", profileId, ...addonIds]);
-  const shouldScaffold = detected.isEmpty && profileId === "nextjs";
-  if (detected.isExisting) {
-    console.log("Existing project detected — installing agent context only (no scaffold).");
-  }
+  let profileChain = resolveProfileChain(["_core", ...addonIds]);
   if (options.noFeatureDocs) {
     profileChain = profileChain.map((manifest) => {
       if (manifest.id !== "_core")
@@ -8774,29 +9225,23 @@ async function runInit(targetPath, options) {
     variables: {
       packageManager: detected.packageManager,
       devCommand: detected.devCommand,
-      profile: profileId
+      profile: detected.stack ?? "unknown"
     }
   };
   console.log(`
 Agent Kit init → ${targetDir}`);
-  console.log(`Profile: ${profileId}${detected.isExisting ? " (existing project)" : " (new project)"}
+  console.log(`Detected stack: ${detected.stack ?? "unknown"}
 `);
   installProfiles(profileChain, ctx, {
     force: options.force,
-    scaffold: !detected.isExisting || detected.isEmpty,
     agentKitVersion: "0.1.0"
   });
   console.log(`
 Done!`);
   console.log("Next steps:");
-  if (shouldScaffold && !detected.isExisting) {
-    console.log(`  1. cd ${path7.basename(targetDir)} && npm install`);
-    console.log(`  2. Edit .cursor/mcp.json — replace YOUR_* with your API keys`);
-    console.log(`  3. ${detected.devCommand}`);
-  } else {
-    console.log("  1. Edit .cursor/mcp.json — replace YOUR_* with your API keys");
-    console.log(`  2. Run ${detected.devCommand} to verify`);
-  }
+  console.log("  1. Run agent-kit analyze . --write to generate project-tailored docs and rules.");
+  console.log("  2. Edit .cursor/mcp.json — replace YOUR_* with your API keys.");
+  console.log(`  3. Run ${detected.devCommand} to verify the project still works.`);
 }
 async function runAdd(targetPath, addonId, options) {
   const targetDir = path7.resolve(targetPath);
@@ -8819,7 +9264,7 @@ async function runAdd(targetPath, addonId, options) {
   console.log(`
 Agent Kit add → ${addonId}
 `);
-  installProfiles(profileChain, ctx, { force: options.force, scaffold: false });
+  installProfiles(profileChain, ctx, { force: options.force });
   console.log(`
 Done!`);
 }
@@ -8842,13 +9287,18 @@ Agent Kit doctor → ${targetDir}
     if (!exists)
       exitCode = 1;
   }
+  const archFile = path7.join(targetDir, ".agents/architecture.md");
+  if (fs7.existsSync(archFile)) {
+    console.log("✓ .agents/architecture.md");
+  } else {
+    console.log("⚠ .agents/architecture.md missing — run agent-kit analyze . --write");
+  }
   const rulesDir2 = path7.join(targetDir, ".cursor/rules");
   if (fs7.existsSync(rulesDir2)) {
     const rules = fs7.readdirSync(rulesDir2).filter((f) => f.endsWith(".mdc"));
     console.log(`✓ .cursor/rules/ (${rules.length} rules)`);
   } else {
-    console.log("✗ .cursor/rules/ missing");
-    exitCode = 1;
+    console.log("⚠ .cursor/rules/ missing — run agent-kit analyze . --write --harness cursor");
   }
   const mcpPath = path7.join(targetDir, ".cursor/mcp.json");
   if (fs7.existsSync(mcpPath)) {
@@ -8859,7 +9309,7 @@ Agent Kit doctor → ${targetDir}
       console.log("✓ .cursor/mcp.json configured");
     }
   } else {
-    console.log("⚠ .cursor/mcp.json missing — run agent-kit add context7");
+    console.log("⚠ .cursor/mcp.json missing — see .agents/mcp-registry.md");
   }
   const gitignore = path7.join(targetDir, ".gitignore");
   if (fs7.existsSync(gitignore)) {
@@ -8876,16 +9326,15 @@ Agent Kit doctor → ${targetDir}
 
 // src/index.ts
 var program2 = new Command;
-program2.name("agent-kit").description("Install agent context and scaffold projects with Agent Kit profiles").version("0.1.0");
-program2.command("init").description("Initialize agent context (and scaffold new Next.js projects)").argument("[path]", "Target directory", ".").option("-p, --profile <id>", "Stack profile: nextjs, vite-react").option("-a, --addon <id...>", "MCP addons to include", ["context7"]).option("-f, --force", "Overwrite existing agent files").option("--no-feature-docs", "Skip feature-docs rule").action(async (targetPath, options) => {
+program2.name("agent-kit").description("Install agent context (AGENTS.md, rules, skills, MCP) into any codebase").version("0.1.0");
+program2.command("init").description("Install Agent Kit core context into an existing project").argument("[path]", "Target directory", ".").option("-a, --addon <id...>", "MCP addons to include", ["context7"]).option("-f, --force", "Overwrite existing agent files").option("--no-feature-docs", "Skip change-docs rule").action(async (targetPath, options) => {
   await runInit(targetPath, {
-    profile: options.profile,
     force: options.force,
     noFeatureDocs: !options.featureDocs,
     addons: options.addon
   });
 });
-program2.command("add").description("Add a profile addon (shadcn, context7, etc.)").argument("<addon>", "Addon profile id").argument("[path]", "Target directory", ".").option("-f, --force", "Overwrite existing files").action(async (addon, targetPath, options) => {
+program2.command("add").description("Add a profile addon (context7, etc.)").argument("<addon>", "Addon profile id").argument("[path]", "Target directory", ".").option("-f, --force", "Overwrite existing files").action(async (addon, targetPath, options) => {
   await runAdd(targetPath, addon, { force: options.force });
 });
 program2.command("analyze").description("Analyze project structure and optionally generate tailored agent docs and rules").argument("[path]", "Target directory", ".").option("--json", "Output ProjectProfile as JSON").option("-w, --write", "Write generated AGENTS.md, .agents/, and rules to disk").option("-H, --harness <name>", "Target harness: cursor, opencode, claude-code, antigravity, copilot", "cursor").action(async (targetPath, options) => {

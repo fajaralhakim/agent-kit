@@ -45,15 +45,22 @@ Copy repo `skills/` → `.claude/skills/`:
 - `read-confluence-prd`
 - `using-project-context`
 
-### 5. MCP — Atlassian Rovo
+### 5. MCP — Atlassian + Figma + Context7
 
-Add remote MCP per Claude Code docs:
+Add remote/local MCP servers per Claude Code docs:
 
 ```json
 {
   "mcpServers": {
     "atlassian-rovo": {
       "url": "https://mcp.atlassian.com/v1/mcp"
+    },
+    "figma": {
+      "command": "npx",
+      "args": ["-y", "figma-developer-mcp", "--figma-api-key=YOUR_FIGMA_TOKEN"]
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp"
     }
   }
 }
