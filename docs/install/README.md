@@ -27,10 +27,14 @@ Stack-agnostic: works for frontend (Next.js, Vite), backend (Express, Nest, Fast
 
 ## CLI alternative
 
+Package: [`@fajaralhakim/agent-kit`](https://www.npmjs.com/package/@fajaralhakim/agent-kit) (Node.js 20+)
+
 ```bash
-bunx github:fajaralhakim/agent-kit analyze . --json
-bunx github:fajaralhakim/agent-kit analyze . --write --harness cursor
+npx @fajaralhakim/agent-kit analyze . --json
+npx @fajaralhakim/agent-kit analyze . --write --harness cursor
 ```
+
+Global install: `npm install -g @fajaralhakim/agent-kit` → run `agent-kit …`
 
 ## Shared workflow
 

@@ -16,7 +16,7 @@ Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/agen
 ### 1. Analyze
 
 ```bash
-bunx @fajaralhakim/agent-kit analyze . --json --harness claude-code
+npx @fajaralhakim/agent-kit analyze . --json --harness claude-code
 ```
 
 ### 2. Generate docs + rules

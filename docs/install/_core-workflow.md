@@ -32,7 +32,7 @@ Only emit layers that actually exist. Do **not** invent layers.
 **Preferred:** run CLI if available:
 
 ```bash
-bunx github:fajaralhakim/agent-kit analyze . --json
+npx @fajaralhakim/agent-kit analyze . --json
 ```
 
 **Fallback:** manual scan using the checklist above.

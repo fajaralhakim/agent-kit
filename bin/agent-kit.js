@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Entry shim for bunx / npm bin.
+ * Entry shim for npx / npm bin.
  * Sets AGENT_KIT_ROOT and runs CLI from dist (built) or src (fallback).
  */
 import fs from "node:fs";

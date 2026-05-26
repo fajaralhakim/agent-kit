@@ -13,7 +13,7 @@ Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/agen
 
 ## Steps
 
-1. Analyze project (CLI or manual)
+1. Analyze project: `npx @fajaralhakim/agent-kit analyze . --json --harness antigravity` (or manual scan)
 2. Generate `AGENTS.md`, `.agents/*`, `.agent/rules/*.md` from scan
 3. Copy workflow skills from repo `skills/` → `.agent/skills/`
 4. Configure MCPs (Atlassian Rovo, Figma, Context7) — see `.agents/mcp-registry.md` for snippets

@@ -61,6 +61,8 @@ The result: the agent has an accurate map of your project before it starts codin
 
 ## Installation
 
+Package: [`@fajaralhakim/agent-kit` on npm](https://www.npmjs.com/package/@fajaralhakim/agent-kit) · Node.js 20+
+
 There are two ways to install, depending on your situation.
 
 ### A. Existing project (recommended)
@@ -106,22 +108,33 @@ What happens after you paste the prompt:
 
 Rules are not copied from templates — they are always generated from the project scan so globs and paths stay accurate.
 
-### B. Via CLI (bunx from GitHub)
+### B. Via CLI (npm)
 
-Analyze any existing project and generate tailored docs + rules:
+Published as [`@fajaralhakim/agent-kit`](https://www.npmjs.com/package/@fajaralhakim/agent-kit) on npm. Requires **Node.js 20+**.
+
+Run without installing (recommended):
 
 ```bash
-bunx github:fajaralhakim/agent-kit analyze . --json                  # view scan output
-bunx github:fajaralhakim/agent-kit analyze . --write --harness cursor # write files to disk
+npx @fajaralhakim/agent-kit analyze . --json                  # view scan output
+npx @fajaralhakim/agent-kit analyze . --write --harness cursor # write files to disk
 ```
 
 Install the core context layer (`AGENTS.md.hbs`, generic rules, `using-project-context` skill) into an existing project:
 
 ```bash
-bunx github:fajaralhakim/agent-kit init .
+npx @fajaralhakim/agent-kit init .
+```
+
+Or install globally:
+
+```bash
+npm install -g @fajaralhakim/agent-kit
+agent-kit analyze . --write --harness cursor
 ```
 
 After `init`, run `analyze --write` to overwrite the generic `AGENTS.md` with one tailored to your project's detected layers.
+
+Also works with Bun: `bunx @fajaralhakim/agent-kit …`
 
 ---
 
@@ -143,7 +156,7 @@ After `init`, run `analyze --write` to overwrite the generic `AGENTS.md` with on
 3. Verify
 
    ```bash
-   bunx github:fajaralhakim/agent-kit doctor
+   npx @fajaralhakim/agent-kit doctor
    ```
 
 4. Commit to repo

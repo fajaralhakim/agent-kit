@@ -17,7 +17,7 @@ Follow [`_core-workflow.md`](https://raw.githubusercontent.com/fajaralhakim/agen
 ### 1. Analyze
 
 ```bash
-bunx @fajaralhakim/agent-kit analyze . --json
+npx @fajaralhakim/agent-kit analyze . --json
 ```
 
 Or manual scan per core workflow.

@@ -4,7 +4,7 @@ node_modules/
 # Bun
 .bun/
 
-# CLI build output — committed for GitHub/npm installs (bunx needs dist without build step)
+# CLI build output — committed for npm installs (npx needs dist without a local build step)
 # packages/cli/dist/
 
 # Environment & secrets

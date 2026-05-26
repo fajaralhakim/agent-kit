@@ -4,7 +4,7 @@ Agent Kit is MIT licensed — free for personal and commercial use.
 
 ## Company deployment
 
-1. Distribute `bunx github:fajaralhakim/agent-kit` (or a private fork) to your team.
+1. Distribute `npx @fajaralhakim/agent-kit` (or a private npm registry / fork) to your team.
 2. Run `agent-kit analyze . --write --harness <cursor|opencode|claude-code|...>` in each repo to generate project-tailored docs + rules.
 3. Optionally run `agent-kit init .` first to drop the generic `_core` skeleton.
 4. Commit `.cursor/mcp.json.example` (or harness equivalent) and agent context files; keep `.cursor/mcp.json` gitignored.
