@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * Entry shim for bunx / npm bin.
  * Sets AGENT_KIT_ROOT and runs CLI from dist (built) or src (fallback).
