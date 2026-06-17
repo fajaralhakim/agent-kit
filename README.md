@@ -189,7 +189,27 @@ Source of truth: [`mcp/registry.json`](mcp/registry.json). Add your own MCPs the
 | `agent-kit analyze . --json` | Scan project → JSON output (`ProjectProfile`) |
 | `agent-kit analyze . --write --harness cursor` | Generate and write project-tailored `AGENTS.md`, `.agents/`, rules |
 | `agent-kit add context7` | Add Context7 MCP entry |
+| `agent-kit add caveman` | Optional: Caveman guide + lean conversation memory (`.agents/memory/`) |
+| `agent-kit init . --addon caveman` | Core + context7 + caveman addon together |
 | `agent-kit doctor` | Validate installation |
+
+---
+
+## Optional addons
+
+| Addon | Command | What it adds |
+|-------|---------|--------------|
+| **context7** | `agent-kit add context7` | Context7 MCP entry in `.cursor/mcp.json` |
+| **caveman** | `agent-kit add caveman` | Caveman install guide (`.agents/caveman.md`), lean plan/session memory under `.agents/memory/`, `conversation-memory` skill and rule |
+
+Caveman itself is **not** installed automatically — the addon adds repo-local guidance and memory conventions. Run Caveman's installer from `.agents/caveman.md` when you want token compression.
+
+Memory flow: agents read compact `.agents/memory/index.md` first, then only the linked active plan or handoff file — not full chat history.
+
+```bash
+npx @fajaralhakim/agent-kit init . --addon caveman
+npx @fajaralhakim/agent-kit add caveman .
+```
 
 ---
 
@@ -228,7 +248,7 @@ agent-kit/
 ├── skills/             # Workflow skill templates (Jira, PR, Confluence, project context)
 └── profiles/
     ├── _core/          # Generic AGENTS.md + core rules + skills
-    └── addons/         # Optional MCP addons (context7, ...)
+    └── addons/         # Optional addons (context7, caveman, ...)
 ```
 
 ---

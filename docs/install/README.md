@@ -32,9 +32,19 @@ Package: [`@fajaralhakim/agent-kit`](https://www.npmjs.com/package/@fajaralhakim
 ```bash
 npx @fajaralhakim/agent-kit analyze . --json
 npx @fajaralhakim/agent-kit analyze . --write --harness cursor
+npx @fajaralhakim/agent-kit add caveman .
 ```
 
 Global install: `npm install -g @fajaralhakim/agent-kit` → run `agent-kit …`
+
+### Optional addons
+
+| Addon | Command |
+|-------|---------|
+| Context7 MCP | `npx @fajaralhakim/agent-kit add context7` |
+| Caveman guide + conversation memory | `npx @fajaralhakim/agent-kit add caveman` |
+
+The **caveman** addon installs `.agents/caveman.md` (opt-in Caveman installer instructions), `.agents/memory/` (compact index + plan/session files), and a `conversation-memory` skill/rule. It does not run Caveman's installer automatically.
 
 ## Shared workflow
 

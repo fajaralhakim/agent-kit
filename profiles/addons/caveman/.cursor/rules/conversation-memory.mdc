@@ -1,0 +1,32 @@
+---
+description: Read compact memory index before continuing plans; write plan/session files when user creates plans or ends sessions with durable context
+alwaysApply: false
+---
+
+# Conversation Memory
+
+Lean file-based memory under `.agents/memory/`. Avoid stuffing chat history into prompts.
+
+## When to read
+
+- User asks to continue, resume, or references a prior plan or session.
+- Starting work that matches the **Active plan** in `index.md`.
+- Before large multi-step tasks that span sessions.
+
+**Read order:** `.agents/memory/index.md` first → linked active plan or handoff file only if relevant. Do not read all `plans/` or `sessions/` files.
+
+## When to write
+
+- User creates or approves a plan → new file in `.agents/memory/plans/` + update `index.md`.
+- Session ends with blockers, partial progress, or decisions → optional file in `.agents/memory/sessions/` + update `index.md`.
+- Important decision → short bullet in `index.md` **Decisions**.
+
+## Index discipline
+
+- Keep `index.md` compact (pointers and bullets, not full narratives).
+- Detailed notes live in plan/session markdown files.
+- See `.cursor/skills/conversation-memory/SKILL.md` for templates.
+
+## Caveman (optional)
+
+If Caveman is installed, see `.agents/caveman.md` for compressing context files. Memory files can be compressed separately; index pointers stay readable.

@@ -1,0 +1,17 @@
+{
+  "id": "caveman",
+  "name": "Caveman + Conversation Memory",
+  "version": "1.0.0",
+  "type": "addon",
+  "requires": [],
+  "conflicts": [],
+  "files": [
+    { "src": ".agents/caveman.md", "dest": ".agents/caveman.md" },
+    { "src": ".agents/memory/index.md", "dest": ".agents/memory/index.md" },
+    { "src": ".agents/memory/.gitkeep", "dest": ".agents/memory/.gitkeep" },
+    { "src": ".agents/memory/plans/.gitkeep", "dest": ".agents/memory/plans/.gitkeep" },
+    { "src": ".agents/memory/sessions/.gitkeep", "dest": ".agents/memory/sessions/.gitkeep" },
+    { "src": ".cursor/skills/conversation-memory/SKILL.md", "dest": ".cursor/skills/conversation-memory/SKILL.md" },
+    { "src": ".cursor/rules/conversation-memory.mdc", "dest": ".cursor/rules/conversation-memory.mdc" }
+  ]
+}

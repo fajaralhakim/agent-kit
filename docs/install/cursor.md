@@ -99,6 +99,29 @@ Add to `.gitignore`:
 
 Run checklist from core workflow. Confirm rules globs differ from other projects if structure differs.
 
+### 6. Optional — Caveman + conversation memory
+
+Not part of the default install. When the user wants lean plan memory across chats or Caveman token compression:
+
+```bash
+npx @fajaralhakim/agent-kit add caveman .
+```
+
+This copies:
+
+| Artifact | Path |
+|----------|------|
+| Caveman guide (opt-in install) | `.agents/caveman.md` |
+| Memory index (read first) | `.agents/memory/index.md` |
+| Plan files | `.agents/memory/plans/YYYY-MM-DD-<slug>.md` |
+| Session handoffs | `.agents/memory/sessions/YYYY-MM-DD-<slug>.md` |
+| Skill | `.cursor/skills/conversation-memory/SKILL.md` |
+| Rule | `.cursor/rules/conversation-memory.mdc` |
+
+**Memory discipline:** agents read `.agents/memory/index.md` only at session start for ongoing work, then the linked active plan if needed — not all session history.
+
+**Caveman:** Agent Kit does not run Caveman's installer. User runs commands from `.agents/caveman.md` when ready.
+
 ## Do not
 
 - Copy static rules from `profiles/` or `harness/` — rules are always generated
